@@ -6,6 +6,7 @@ import Billing from "./pages/Billing";
 import Customers from "./pages/Customers";
 import Notifications from "./pages/Notifications";
 import MLInsights from "./pages/MLInsights";
+import Pricing from "./pages/Pricing";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/customers" element={<Customers />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/ml" element={<MLInsights />} />
+        <Route path="/pricing" element={<Pricing />} />
       </Routes>
     </BrowserRouter>
   );

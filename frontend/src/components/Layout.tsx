@@ -11,7 +11,11 @@ const navItems = [
   { name: "Billing", path: "/billing" },
   { name: "Products", path: "/products" },
   { name: "Customers", path: "/customers" },
+
+  // ✅ Phase 7
+  { name: "Pricing", path: "/pricing" },
   { name: "Notifications", path: "/notifications" },
+
   { name: "ML Insights", path: "/ml" },
 ];
 
@@ -19,7 +23,7 @@ export default function Layout({ title, children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex">
       {/* Sidebar */}
-      <aside className="w-[260px] bg-zinc-900 border-r border-zinc-800 p-5 hidden md:block">
+      <aside className="w-65 bg-zinc-900 border-r border-zinc-800 p-5 hidden md:block">
         <div className="text-xl font-bold tracking-wide">
           Smart<span className="text-indigo-400">POS</span>
         </div>
@@ -54,9 +58,7 @@ export default function Layout({ title, children }: LayoutProps) {
         {/* Topbar */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/60 backdrop-blur">
           <h1 className="text-lg font-semibold">{title}</h1>
-          <div className="text-xs text-zinc-400">
-            Phase 6 • UI Build 😤🔥
-          </div>
+          <div className="text-xs text-zinc-400">Phase 7 • UI Integration 😤🔥</div>
         </header>
 
         {/* Content */}
