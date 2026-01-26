@@ -9,8 +9,17 @@ from app.api.notifications import router as notifications_router
 from app.api.ml_customers import router as ml_customers_router
 from app.api.ml_recommendations import router as ml_recommendations_router
 from app.api.ml_price import router as ml_price_router
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="SmartPOS-CRM-AI")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(products_router)
 app.include_router(billing_router)
