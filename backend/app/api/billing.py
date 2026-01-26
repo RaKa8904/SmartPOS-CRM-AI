@@ -14,7 +14,8 @@ def create_invoice(payload: CreateInvoiceRequest, db: Session = Depends(get_db))
     if not payload.items:
         raise HTTPException(status_code=400, detail="No items provided")
 
-    invoice = Invoice(total_amount=0.0)
+    invoice = Invoice(total_amount=0.0, customer_id=payload.customer_id)
+
     db.add(invoice)
     db.commit()
     db.refresh(invoice)
