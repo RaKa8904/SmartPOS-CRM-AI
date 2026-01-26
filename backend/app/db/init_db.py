@@ -4,6 +4,7 @@ from app.models.invoice import Invoice
 from app.models.invoice_item import InvoiceItem
 from app.models.customer import Customer
 from app.models.price_history import ProductPriceHistory
+from app.models.notification import Notification
 
 def init_db():
     Base.metadata.create_all(bind=engine)
