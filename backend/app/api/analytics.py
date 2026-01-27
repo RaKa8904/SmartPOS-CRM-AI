@@ -31,8 +31,9 @@ def get_kpis(db: Session = Depends(get_db)):
 def revenue_trend(db: Session = Depends(get_db)):
     rows = db.execute(
         text("""
-            SELECT DATE(created_at) AS date,
-                   SUM(total_amount) AS revenue
+            SELECT 
+                DATE(created_at) AS date,
+                SUM(total_amount) AS revenue
             FROM invoices
             GROUP BY DATE(created_at)
             ORDER BY DATE(created_at)
@@ -40,6 +41,36 @@ def revenue_trend(db: Session = Depends(get_db)):
     ).fetchall()
 
     return [
-        {"date": str(r.date), "revenue": r.revenue}
-        for r in rows
+        {
+            "date": str(row.date),
+            "revenue": float(row.revenue)
+        }
+        for row in rows
+    ]
+
+@router.get("/top-products")
+def top_products(db: Session = Depends(get_db)):
+    rows = db.execute(
+        text("""
+            SELECT
+                p.id AS product_id,
+                p.name AS name,
+                SUM(ii.quantity) AS units_sold,
+                SUM(ii.quantity * ii.price_at_purchase) AS revenue
+            FROM invoice_items ii
+            JOIN products p ON p.id = ii.product_id
+            GROUP BY p.id, p.name
+            ORDER BY revenue DESC
+            LIMIT 10
+        """)
+    ).fetchall()
+
+    return [
+        {
+            "product_id": row.product_id,
+            "name": row.name,
+            "units_sold": int(row.units_sold or 0),
+            "revenue": float(row.revenue or 0),
+        }
+        for row in rows
     ]
