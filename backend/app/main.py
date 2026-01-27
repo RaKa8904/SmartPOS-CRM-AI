@@ -9,6 +9,7 @@ from app.api.notifications import router as notifications_router
 from app.api.ml_customers import router as ml_customers_router
 from app.api.ml_recommendations import router as ml_recommendations_router
 from app.api.ml_price import router as ml_price_router
+from app.api.analytics import router as analytics_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="SmartPOS-CRM-AI")
@@ -31,6 +32,7 @@ app.include_router(notifications_router)
 app.include_router(ml_customers_router)
 app.include_router(ml_recommendations_router)
 app.include_router(ml_price_router)
+app.include_router(analytics_router)
 
 @app.get("/")
 def root():
