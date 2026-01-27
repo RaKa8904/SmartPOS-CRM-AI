@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = os.getenv("postgresql://smartpos_db_pcwj_user:WiO4Jm3dHbc3SjIag3tCtCOjAuIsWMns@dpg-d5savt15pdvs739ibpdg-a/smartpos_db_pcwj")
+DATABASE_URL = os.getenv("postgresql://smartpos_db1_user:aEsj8slK8pPxKGoELnWn9se9Ssq0jCO7@dpg-d5sde2k9c44c73et6jv0-a/smartpos_db1")
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set")
