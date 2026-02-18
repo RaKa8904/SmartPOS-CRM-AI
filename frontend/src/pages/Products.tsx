@@ -17,6 +17,7 @@ export default function Products() {
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [stock, setStock] = useState<number>(0);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -33,6 +34,12 @@ export default function Products() {
 
     load();
   }, []);
+
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.id.toString().includes(searchTerm)
+  );
 
   const addProduct = async () => {
     if (!name || !sku || price <= 0) {
@@ -57,37 +64,12 @@ export default function Products() {
         <h2 className="text-lg font-semibold mb-4">Add Product</h2>
 
         <div className="space-y-3">
-          <input
-            className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800"
-            placeholder="Product Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <input
-            className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800"
-            placeholder="SKU"
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-          />
-          <input
-            className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800"
-            type="number"
-            placeholder="Price"
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-          />
-          <input
-            className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800"
-            type="number"
-            placeholder="Stock"
-            value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
-          />
+          <input className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800" placeholder="Product Name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800" placeholder="SKU" value={sku} onChange={(e) => setSku(e.target.value)} />
+          <input className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800" type="number" placeholder="Price" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+          <input className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800" type="number" placeholder="Stock" value={stock} onChange={(e) => setStock(Number(e.target.value))} />
 
-          <button
-            onClick={addProduct}
-            className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500"
-          >
+          <button onClick={addProduct} className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500">
             Add Product
           </button>
         </div>
@@ -96,40 +78,51 @@ export default function Products() {
       <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
         <h2 className="text-lg font-semibold">Product List</h2>
 
+        <div className="mt-4 mb-4">
+          <input
+            type="text"
+            placeholder="Search by Product Name or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white"
+          />
+        </div>
+
         {loading ? (
           <p className="text-zinc-400 mt-4">Loading...</p>
         ) : (
           <table className="w-full text-sm table-fixed">
-  <thead>
-    <tr className="text-zinc-400 border-b border-zinc-800">
-      <th className="w-12 text-left py-2">ID</th>
-      <th className="w-40 text-left py-2">Name</th>
-      <th className="w-32 text-left py-2">SKU</th>
-      <th className="w-24 text-right py-2">Price</th>
-      <th className="w-20 text-right py-2">Stock</th>
-    </tr>
-  </thead>
-  <tbody>
-    {products.map((p) => (
-      <tr
-        key={p.id}
-        className="border-b border-zinc-800 hover:bg-zinc-900/40 transition"
-      >
-        <td className="py-2">{p.id}</td>
-        <td className="py-2 truncate">{p.name}</td>
-        <td className="py-2 text-zinc-400">{p.sku}</td>
-        <td className="py-2 text-right">₹ {p.price}</td>
-        <td
-          className={`py-2 text-right font-medium ${
-            p.stock === 0 ? "text-red-400" : "text-green-400"
-          }`}
-        >
-          {p.stock}
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
+            <thead>
+              <tr className="text-zinc-400 border-b border-zinc-800">
+                <th className="w-12 text-left py-2">ID</th>
+                <th className="w-40 text-left py-2">Name</th>
+                <th className="w-32 text-left py-2">SKU</th>
+                <th className="w-24 text-right py-2">Price</th>
+                <th className="w-20 text-right py-2">Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-6 text-zinc-500">
+                    No products found
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((p) => (
+                  <tr key={p.id} className="border-b border-zinc-800 hover:bg-zinc-900/40 transition">
+                    <td className="py-2">{p.id}</td>
+                    <td className="py-2 truncate">{p.name}</td>
+                    <td className="py-2 text-zinc-400">{p.sku}</td>
+                    <td className="py-2 text-right">₹ {p.price}</td>
+                    <td className={`py-2 text-right font-medium ${p.stock === 0 ? "text-red-400" : "text-green-400"}`}>
+                      {p.stock}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

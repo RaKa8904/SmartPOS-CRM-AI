@@ -44,6 +44,8 @@ export default function Billing() {
   const [loading, setLoading] = useState(true);
   const [invoiceData, setInvoiceData] = useState<InvoiceResponse | null>(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -64,6 +66,12 @@ export default function Billing() {
     load();
   }, []);
 
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.id.toString().includes(searchTerm)
+  );
+
   const addToCart = (p: Product) => {
     setCart((prev) => {
       const found = prev.find((x) => x.product_id === p.id);
@@ -72,10 +80,7 @@ export default function Billing() {
           x.product_id === p.id ? { ...x, qty: x.qty + 1 } : x
         );
       }
-      return [
-        ...prev,
-        { product_id: p.id, name: p.name, price: p.price, qty: 1 },
-      ];
+      return [...prev, { product_id: p.id, name: p.name, price: p.price, qty: 1 }];
     });
   };
 
@@ -137,7 +142,6 @@ export default function Billing() {
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         {/* LEFT PANEL */}
         <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800">
           <select
@@ -155,7 +159,6 @@ export default function Billing() {
             ))}
           </select>
 
-          {/* CART SECTION */}
           <div className="mt-4 space-y-3">
             {cart.map((i) => (
               <div
@@ -170,30 +173,10 @@ export default function Billing() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => decreaseQty(i.product_id)}
-                    className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs"
-                  >
-                    −
-                  </button>
-
-                  <span className="text-sm w-5 text-center">
-                    {i.qty}
-                  </span>
-
-                  <button
-                    onClick={() => increaseQty(i.product_id)}
-                    className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs"
-                  >
-                    +
-                  </button>
-
-                  <button
-                    onClick={() => removeItem(i.product_id)}
-                    className="px-2 py-1 bg-red-600 hover:bg-red-500 rounded text-xs"
-                  >
-                    ✕
-                  </button>
+                  <button onClick={() => decreaseQty(i.product_id)} className="px-2 py-1 bg-zinc-800 rounded text-xs">−</button>
+                  <span className="text-sm w-5 text-center">{i.qty}</span>
+                  <button onClick={() => increaseQty(i.product_id)} className="px-2 py-1 bg-zinc-800 rounded text-xs">+</button>
+                  <button onClick={() => removeItem(i.product_id)} className="px-2 py-1 bg-red-600 rounded text-xs">✕</button>
                 </div>
 
                 <div className="text-sm font-medium">
@@ -220,11 +203,23 @@ export default function Billing() {
           </button>
         </div>
 
-        {/* PRODUCTS TABLE */}
+        {/* PRODUCTS SECTION */}
         <div className="lg:col-span-2 overflow-auto">
+          {/* SEARCH BAR */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search by Product Name or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white"
+            />
+          </div>
+
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="text-zinc-400 border-b border-zinc-800">
+                <th className="text-left py-2 px-3">ID</th>
                 <th className="text-left py-2 px-3">Name</th>
                 <th className="text-left py-2 px-3">SKU</th>
                 <th className="text-right py-2 px-3">Price</th>
@@ -233,30 +228,36 @@ export default function Billing() {
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
-                <tr
-                  key={p.id}
-                  className="border-b border-zinc-800 hover:bg-zinc-900/40"
-                >
-                  <td className="py-2 px-3">{p.name}</td>
-                  <td className="py-2 px-3 text-zinc-400">{p.sku}</td>
-                  <td className="py-2 px-3 text-right">₹ {p.price}</td>
-                  <td className="py-2 px-3 text-center">{p.stock}</td>
-                  <td className="py-2 px-3 text-center">
-                    <button
-                      disabled={p.stock <= 0}
-                      onClick={() => addToCart(p)}
-                      className={`px-3 py-1 rounded-lg text-xs ${
-                        p.stock <= 0
-                          ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                          : "bg-indigo-600 hover:bg-indigo-500 text-white"
-                      }`}
-                    >
-                      Add
-                    </button>
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-6 text-zinc-500">
+                    No products found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredProducts.map((p) => (
+                  <tr key={p.id} className="border-b border-zinc-800 hover:bg-zinc-900/40">
+                    <td className="py-2 px-3">{p.id}</td>
+                    <td className="py-2 px-3">{p.name}</td>
+                    <td className="py-2 px-3 text-zinc-400">{p.sku}</td>
+                    <td className="py-2 px-3 text-right">₹ {p.price}</td>
+                    <td className="py-2 px-3 text-center">{p.stock}</td>
+                    <td className="py-2 px-3 text-center">
+                      <button
+                        disabled={p.stock <= 0}
+                        onClick={() => addToCart(p)}
+                        className={`px-3 py-1 rounded-lg text-xs ${
+                          p.stock <= 0
+                            ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                            : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                        }`}
+                      >
+                        Add
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -266,7 +267,6 @@ export default function Billing() {
       {invoiceData && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-2xl w-full shadow-2xl">
-
             <h2 className="text-xl font-semibold text-indigo-400 mb-2">
               Invoice #{invoiceData.invoice_id}
             </h2>
@@ -308,7 +308,6 @@ export default function Billing() {
                 Close
               </button>
             </div>
-
           </div>
         </div>
       )}
