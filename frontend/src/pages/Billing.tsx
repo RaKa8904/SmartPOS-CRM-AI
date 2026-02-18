@@ -43,7 +43,6 @@ export default function Billing() {
   const [customerId, setCustomerId] = useState<number | "">("");
   const [loading, setLoading] = useState(true);
   const [invoiceData, setInvoiceData] = useState<InvoiceResponse | null>(null);
-
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -55,8 +54,8 @@ export default function Billing() {
         ]);
         setCustomers(c.data);
         setProducts(p.data);
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("Failed to load billing data:", error);
         alert("Failed to load billing data");
       } finally {
         setLoading(false);
@@ -84,33 +83,24 @@ export default function Billing() {
     });
   };
 
-  const increaseQty = (product_id: number) => {
+  const increaseQty = (id: number) =>
     setCart((prev) =>
-      prev.map((item) =>
-        item.product_id === product_id
-          ? { ...item, qty: item.qty + 1 }
-          : item
+      prev.map((i) =>
+        i.product_id === id ? { ...i, qty: i.qty + 1 } : i
       )
     );
-  };
 
-  const decreaseQty = (product_id: number) => {
+  const decreaseQty = (id: number) =>
     setCart((prev) =>
       prev
-        .map((item) =>
-          item.product_id === product_id
-            ? { ...item, qty: item.qty - 1 }
-            : item
+        .map((i) =>
+          i.product_id === id ? { ...i, qty: i.qty - 1 } : i
         )
-        .filter((item) => item.qty > 0)
+        .filter((i) => i.qty > 0)
     );
-  };
 
-  const removeItem = (product_id: number) => {
-    setCart((prev) =>
-      prev.filter((item) => item.product_id !== product_id)
-    );
-  };
+  const removeItem = (id: number) =>
+    setCart((prev) => prev.filter((i) => i.product_id !== id));
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
 
@@ -131,10 +121,13 @@ export default function Billing() {
 
       setInvoiceData(res.data);
       setCart([]);
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Failed to create invoice ❌");
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   if (loading) return <p className="text-zinc-400">Loading...</p>;
@@ -142,8 +135,9 @@ export default function Billing() {
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
         {/* LEFT PANEL */}
-        <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800">
+        <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4">
           <select
             className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
             value={customerId}
@@ -159,7 +153,14 @@ export default function Billing() {
             ))}
           </select>
 
-          <div className="mt-4 space-y-3">
+          {/* CART LIST */}
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {cart.length === 0 && (
+              <p className="text-zinc-500 text-sm text-center">
+                No items added yet
+              </p>
+            )}
+
             {cart.map((i) => (
               <div
                 key={i.product_id}
@@ -186,78 +187,56 @@ export default function Billing() {
             ))}
           </div>
 
-          <div className="mt-4 text-lg font-bold">
+          <div className="text-lg font-bold text-indigo-400">
             Total: ₹ {total}
           </div>
 
           <button
             onClick={createInvoice}
             disabled={!customerId || cart.length === 0}
-            className={`w-full mt-4 py-2 rounded-lg font-medium transition ${
-              !customerId || cart.length === 0
-                ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-500"
-            }`}
+            className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500"
           >
             Generate Invoice
           </button>
         </div>
 
-        {/* PRODUCTS SECTION */}
-        <div className="lg:col-span-2 overflow-auto">
-          {/* SEARCH BAR */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search by Product Name or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white"
-            />
-          </div>
+        {/* PRODUCTS */}
+        <div className="lg:col-span-2 bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
+          <input
+            type="text"
+            placeholder="Search by Product Name or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full mb-4 p-2 rounded-lg bg-zinc-950 border border-zinc-800"
+          />
 
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-sm">
             <thead>
               <tr className="text-zinc-400 border-b border-zinc-800">
-                <th className="text-left py-2 px-3">ID</th>
-                <th className="text-left py-2 px-3">Name</th>
-                <th className="text-left py-2 px-3">SKU</th>
-                <th className="text-right py-2 px-3">Price</th>
-                <th className="text-center py-2 px-3">Stock</th>
-                <th className="text-center py-2 px-3">Action</th>
+                <th className="py-2 text-left">ID</th>
+                <th className="py-2 text-left">Name</th>
+                <th className="py-2 text-right">Price</th>
+                <th className="py-2 text-center">Stock</th>
+                <th className="py-2 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-6 text-zinc-500">
-                    No products found
+              {filteredProducts.map((p) => (
+                <tr key={p.id} className="border-b border-zinc-800">
+                  <td>{p.id}</td>
+                  <td>{p.name}</td>
+                  <td className="text-right">₹ {p.price}</td>
+                  <td className="text-center">{p.stock}</td>
+                  <td className="text-center">
+                    <button
+                      onClick={() => addToCart(p)}
+                      className="px-3 py-1 bg-indigo-600 rounded text-xs"
+                    >
+                      Add
+                    </button>
                   </td>
                 </tr>
-              ) : (
-                filteredProducts.map((p) => (
-                  <tr key={p.id} className="border-b border-zinc-800 hover:bg-zinc-900/40">
-                    <td className="py-2 px-3">{p.id}</td>
-                    <td className="py-2 px-3">{p.name}</td>
-                    <td className="py-2 px-3 text-zinc-400">{p.sku}</td>
-                    <td className="py-2 px-3 text-right">₹ {p.price}</td>
-                    <td className="py-2 px-3 text-center">{p.stock}</td>
-                    <td className="py-2 px-3 text-center">
-                      <button
-                        disabled={p.stock <= 0}
-                        onClick={() => addToCart(p)}
-                        className={`px-3 py-1 rounded-lg text-xs ${
-                          p.stock <= 0
-                            ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                            : "bg-indigo-600 hover:bg-indigo-500 text-white"
-                        }`}
-                      >
-                        Add
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>
@@ -265,19 +244,21 @@ export default function Billing() {
 
       {/* INVOICE MODAL */}
       {invoiceData && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-2xl w-full shadow-2xl">
-            <h2 className="text-xl font-semibold text-indigo-400 mb-2">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 print:bg-white">
+          <div className="bg-zinc-900 print:bg-white print:text-black border border-zinc-800 rounded-2xl p-6 w-full max-w-2xl">
+
+            <h2 className="text-xl font-semibold mb-2">
               Invoice #{invoiceData.invoice_id}
             </h2>
 
-            <p className="text-zinc-400 mb-4">
-              Customer: <span className="text-white">{invoiceData.customer_name}</span>
+            <p className="mb-4">
+              Customer: {invoiceData.customer_name}
             </p>
 
-            <table className="w-full text-sm border-collapse">
+            {/* ITEM LIST RESTORED */}
+            <table className="w-full text-sm border-collapse mb-4">
               <thead>
-                <tr className="border-b border-zinc-700 text-zinc-400">
+                <tr className="border-b border-zinc-700 print:border-black">
                   <th className="text-left py-2">Product</th>
                   <th className="text-center py-2">Qty</th>
                   <th className="text-right py-2">Price</th>
@@ -286,7 +267,7 @@ export default function Billing() {
               </thead>
               <tbody>
                 {invoiceData.items.map((item, index) => (
-                  <tr key={index} className="border-b border-zinc-800">
+                  <tr key={index} className="border-b border-zinc-800 print:border-black">
                     <td className="py-2">{item.name}</td>
                     <td className="py-2 text-center">{item.quantity}</td>
                     <td className="py-2 text-right">₹ {item.price}</td>
@@ -296,18 +277,25 @@ export default function Billing() {
               </tbody>
             </table>
 
-            <div className="mt-4 text-right text-lg font-bold">
+            <div className="text-right text-lg font-bold mb-6">
               Total: ₹ {invoiceData.total_amount}
             </div>
 
-            <div className="mt-6 text-right">
+            <div className="flex justify-end gap-3 print:hidden">
+              <button
+                onClick={handlePrint}
+                className="px-4 py-2 bg-green-600 rounded"
+              >
+                Print
+              </button>
               <button
                 onClick={() => setInvoiceData(null)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg"
+                className="px-4 py-2 bg-indigo-600 rounded"
               >
                 Close
               </button>
             </div>
+
           </div>
         </div>
       )}
