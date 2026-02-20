@@ -11,7 +11,11 @@ router = APIRouter(prefix="/products", tags=["Products"])
 # ---------------- ADD PRODUCT ----------------
 @router.post("/add", response_model=ProductOut)
 def add_product(payload: ProductCreate, db: Session = Depends(get_db)):
-    existing = db.query(Product).filter(Product.sku == payload.sku).first()
+    existing = db.query(Product).filter(
+        Product.sku == payload.sku,
+        Product.is_active == True
+    ).first()
+
     if existing:
         raise HTTPException(status_code=400, detail="SKU already exists")
 
@@ -19,7 +23,8 @@ def add_product(payload: ProductCreate, db: Session = Depends(get_db)):
         name=payload.name,
         sku=payload.sku,
         price=payload.price,
-        stock=payload.stock
+        stock=payload.stock,
+        is_active=True
     )
 
     db.add(product)
@@ -31,13 +36,16 @@ def add_product(payload: ProductCreate, db: Session = Depends(get_db)):
 # ---------------- LIST PRODUCTS ----------------
 @router.get("/list", response_model=list[ProductOut])
 def list_products(db: Session = Depends(get_db)):
-    return db.query(Product).all()
+    return db.query(Product).filter(Product.is_active == True).all()
 
 
 # ---------------- UPDATE PRODUCT ----------------
 @router.put("/update/{product_id}", response_model=ProductOut)
 def update_product(product_id: int, payload: ProductCreate, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.is_active == True
+    ).first()
 
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -52,30 +60,43 @@ def update_product(product_id: int, payload: ProductCreate, db: Session = Depend
     return product
 
 
-# ---------------- DELETE PRODUCT ----------------
+# ---------------- SOFT DELETE PRODUCT ----------------
 @router.delete("/delete/{product_id}")
 def delete_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.is_active == True
+    ).first()
+
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    db.delete(product)
+    # 🔥 Soft Delete Instead of Hard Delete
+    product.is_active = False
+
     db.commit()
-    return {"message": "Product deleted"}
+
+    return {"message": "Product archived successfully"}
 
 
 # ---------------- RESTOCK PRODUCT ----------------
 @router.put("/restock/{product_id}")
 def restock_product(product_id: int, payload: dict, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.is_active == True
+    ).first()
+
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
     quantity = payload.get("quantity", 0)
+
     if quantity <= 0:
         raise HTTPException(status_code=400, detail="Invalid quantity")
 
     product.stock += quantity
+
     db.commit()
     db.refresh(product)
 
