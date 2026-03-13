@@ -23,9 +23,9 @@ export default function Products() {
 
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
-  const [price, setPrice] = useState<number>(0);
-  const [stock, setStock] = useState<number>(0);
-  const [taxRate, setTaxRate] = useState<number>(18);
+  const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("");
+  const [taxRate, setTaxRate] = useState("18");
   const [categoryId, setCategoryId] = useState<number | "">("");
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -50,7 +50,10 @@ export default function Products() {
   }, []);
 
   const addProduct = async () => {
-    if (!name || !sku || price <= 0) {
+    const priceNum = parseFloat(price);
+    const stockNum = parseInt(stock) || 0;
+    const taxNum   = parseFloat(taxRate) || 18;
+    if (!name || !sku || isNaN(priceNum) || priceNum <= 0) {
       alert("Please enter valid product details");
       return;
     }
@@ -58,17 +61,17 @@ export default function Products() {
     await api.post("/products/add", {
       name,
       sku,
-      price,
-      stock,
-      tax_rate: taxRate,
+      price: priceNum,
+      stock: stockNum,
+      tax_rate: taxNum,
       category_id: categoryId || null,
     });
 
     setName("");
     setSku("");
-    setPrice(0);
-    setStock(0);
-    setTaxRate(18);
+    setPrice("");
+    setStock("");
+    setTaxRate("18");
     setCategoryId("");
 
     loadProducts();
@@ -119,16 +122,16 @@ export default function Products() {
           />
           <input
             type="number"
-            placeholder="Price"
+            placeholder="Price (₹)"
             value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
+            onChange={(e) => setPrice(e.target.value)}
             className="input-surface"
           />
           <input
             type="number"
-            placeholder="Stock"
+            placeholder="Initial Stock"
             value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
+            onChange={(e) => setStock(e.target.value)}
             className="input-surface"
           />
         </div>
@@ -137,7 +140,7 @@ export default function Products() {
             type="number"
             placeholder="GST Rate % (e.g. 18)"
             value={taxRate}
-            onChange={(e) => setTaxRate(Number(e.target.value))}
+            onChange={(e) => setTaxRate(e.target.value)}
             className="input-surface"
           />
           <select
