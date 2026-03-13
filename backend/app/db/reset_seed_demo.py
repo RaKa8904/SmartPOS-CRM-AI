@@ -151,6 +151,16 @@ def seed_demo_data() -> None:
 
         base_date = datetime.now(timezone.utc) - timedelta(days=21)
 
+        # Prices that were higher before recent drops (used for older invoices idx < 7)
+        # Mirrors the price_moves history above so eligible-customers feature has demo data
+        old_price_map: Dict[str, float] = {
+            "DBY-BRD-400": 55.0,   # now 50
+            "HCL-DTG-1K":  235.0,  # now 210
+            "IMS-KTC-500":  99.0,  # now 90
+            "SNK-PRC-120":  72.0,  # now 65
+            "BEV-CCF-200":  60.0,  # now 55
+        }
+
         for idx, (cust_name, payment_method, amount_tendered, lines) in enumerate(baskets):
             customer = customer_map[cust_name]
             subtotal = 0.0
@@ -162,7 +172,10 @@ def seed_demo_data() -> None:
                 if product.stock < qty:
                     continue
 
-                line_total = round(product.price * qty, 2)
+                # For the first 7 (older) invoices use the historical higher price where applicable
+                purchase_price = old_price_map[sku] if (idx < 7 and sku in old_price_map) else product.price
+
+                line_total = round(purchase_price * qty, 2)
                 line_tax = round(line_total * (product.tax_rate / 100.0), 2)
                 subtotal += line_total
                 tax_total += line_tax
@@ -172,7 +185,7 @@ def seed_demo_data() -> None:
                     InvoiceItem(
                         product_id=product.id,
                         quantity=qty,
-                        price_at_purchase=product.price,
+                        price_at_purchase=purchase_price,
                         tax_rate=product.tax_rate,
                         line_total=line_total,
                         line_tax=line_tax,
