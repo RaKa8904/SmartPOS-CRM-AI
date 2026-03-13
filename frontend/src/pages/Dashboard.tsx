@@ -404,7 +404,9 @@ export default function Dashboard() {
               <ZAxis dataKey="bubble" range={[80, 900]} />
               <Tooltip
                 cursor={{ strokeDasharray: "4 4" }}
-                contentStyle={{ background: "#131a38", border: "1px solid #3f57aa", borderRadius: "10px", color: "#dbe8ff" }}
+                contentStyle={{ background: "#101a45", border: "1px solid #5f7fe0", borderRadius: "10px", color: "#f1f7ff" }}
+                itemStyle={{ color: "#f1f7ff", fontWeight: 600 }}
+                labelStyle={{ color: "#a8ddff", fontWeight: 700 }}
                 formatter={(value, name) => {
                   if (name === "Avg Bill") return [`Rs ${Number(value ?? 0).toFixed(2)}`, "Avg Bill"];
                   return [Number(value ?? 0), name];
