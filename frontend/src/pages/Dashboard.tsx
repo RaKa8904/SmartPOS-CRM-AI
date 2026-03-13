@@ -77,6 +77,11 @@ export default function Dashboard() {
 
   const COLORS = ["#22c55e", "#f59e0b"];
 
+  const compactLabel = (value: string) => {
+    if (!value) return "";
+    return value.length > 11 ? `${value.slice(0, 10)}..` : value;
+  };
+
   if (loading) {
     return <p className="text-zinc-400">Loading dashboard...</p>;
   }
@@ -147,17 +152,28 @@ export default function Dashboard() {
   <ResponsiveContainer width="100%" height={320}>
     <BarChart
       data={topSpenders}
-      margin={{ top: 20, right: 20, left: 0, bottom: 40 }}
+      margin={{ top: 20, right: 20, left: 0, bottom: 72 }}
     >
       <XAxis
         dataKey="name"
-        stroke="#a1a1aa"
+        stroke="#9fb8e0"
         interval={0}
         tick={{ fontSize: 11 }}
+        tickFormatter={compactLabel}
+        angle={-18}
+        textAnchor="end"
+        height={66}
       />
-      <YAxis stroke="#a1a1aa" />
-      <Tooltip />
-      <Bar dataKey="total_spent" fill="#6366f1" radius={[6, 6, 0, 0]} />
+      <YAxis stroke="#9fb8e0" />
+      <Tooltip
+        contentStyle={{
+          background: "#131a38",
+          border: "1px solid #3f57aa",
+          borderRadius: "10px",
+          color: "#dbe8ff",
+        }}
+      />
+      <Bar dataKey="total_spent" fill="#00d0ff" radius={[8, 8, 0, 0]} />
     </BarChart>
   </ResponsiveContainer>
 </div>
@@ -171,17 +187,29 @@ export default function Dashboard() {
   <ResponsiveContainer width="100%" height={320}>
     <BarChart
       data={topProducts}
-      margin={{ top: 20, right: 20, left: 0, bottom: 40 }}
+      margin={{ top: 20, right: 20, left: 0, bottom: 72 }}
     >
       <XAxis
         dataKey="name"
-        stroke="#a1a1aa"
+        stroke="#9fb8e0"
         interval={0}
         tick={{ fontSize: 11 }}
+        tickFormatter={compactLabel}
+        angle={-18}
+        textAnchor="end"
+        height={66}
       />
-      <YAxis stroke="#a1a1aa" />
-      <Tooltip />
-      <Bar dataKey="revenue" fill="#22c55e" radius={[6, 6, 0, 0]} />
+      <YAxis stroke="#9fb8e0" />
+      <Tooltip
+        contentStyle={{
+          background: "#131a38",
+          border: "1px solid #3f57aa",
+          borderRadius: "10px",
+          color: "#dbe8ff",
+        }}
+        formatter={(value) => [`Rs ${Number(value ?? 0).toFixed(2)}`, "Revenue"]}
+      />
+      <Bar dataKey="revenue" fill="#20d46f" radius={[8, 8, 0, 0]} />
     </BarChart>
   </ResponsiveContainer>
 </div>

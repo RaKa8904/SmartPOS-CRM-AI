@@ -109,25 +109,25 @@ export default function Customers() {
 
         {/* LEFT */}
         <div className="space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-            <h2 className="text-lg font-semibold mb-4">Add Customer</h2>
+          <div className="glass-card rounded-2xl p-5 fade-in">
+            <h2 className="section-title text-gradient mb-4">Add Customer</h2>
 
             <input
-              className="w-full mb-3 p-2 bg-zinc-950 border border-zinc-800 rounded-lg"
+              className="input-surface mb-3"
               placeholder="Customer Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
 
             <input
-              className="w-full mb-3 p-2 bg-zinc-950 border border-zinc-800 rounded-lg"
+              className="input-surface mb-3"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
 
             <input
-              className="w-full mb-3 p-2 bg-zinc-950 border border-zinc-800 rounded-lg"
+              className="input-surface mb-3"
               placeholder="Phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -135,14 +135,14 @@ export default function Customers() {
 
             <button
               onClick={addCustomer}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg"
+              className="btn-primary w-full py-2"
             >
               Add Customer
             </button>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-            <h2 className="text-lg font-semibold mb-4">Customer List</h2>
+          <div className="glass-card rounded-2xl p-5 fade-in stagger-1">
+            <h2 className="section-title mb-4">Customer List</h2>
 
             {customers.map((c) => (
               <button
@@ -151,10 +151,14 @@ export default function Customers() {
                   setSelectedCustomer(c);
                   fetchCustomerAnalytics(c.id);
                 }}
-                className="w-full text-left p-3 rounded-xl border border-zinc-800 bg-zinc-950 hover:bg-zinc-900 mb-2"
+                className={`w-full text-left p-3 rounded-xl border mb-2 transition ${
+                  selectedCustomer?.id === c.id
+                    ? "border-cyan-300/50 bg-cyan-300/10"
+                    : "border-[#33437f]/30 bg-[#0d1635]/55 hover:bg-[#203063]/25"
+                }`}
               >
-                <p>{c.name}</p>
-                <p className="text-xs text-zinc-400">
+                <p className="text-slate-100">{c.name}</p>
+                <p className="text-xs text-slate-300/70">
                   ID: {c.id}
                 </p>
               </button>
@@ -163,40 +167,42 @@ export default function Customers() {
         </div>
 
         {/* RIGHT */}
-        <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+        <div className="lg:col-span-2 glass-card rounded-2xl p-5 fade-in stagger-2">
           {!selectedCustomer ? (
-            <p className="text-zinc-500">Select a customer.</p>
+            <p className="text-slate-300/75">Select a customer to view invoice history.</p>
           ) : (
             <>
-              <h2 className="text-lg font-semibold mb-4">Invoice History</h2>
+              <h2 className="section-title mb-4">Invoice History • {selectedCustomer.name}</h2>
 
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-800 text-zinc-400">
-                    <th className="text-left py-2">Invoice ID</th>
-                    <th className="text-left py-2">Total</th>
-                    <th className="text-left py-2">Created At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((inv) => (
-                    <tr key={inv.invoice_id} className="border-b border-zinc-800">
-                      <td className="py-2">
-                        <button
-                          onClick={() => fetchInvoice(inv.invoice_id)}
-                          className="text-indigo-400 hover:text-indigo-300 underline"
-                        >
-                          {inv.invoice_id}
-                        </button>
-                      </td>
-                      <td className="py-2">₹ {inv.total_amount}</td>
-                      <td className="py-2">
-                        {new Date(inv.created_at).toLocaleString()}
-                      </td>
+              <div className="rounded-xl border border-[#33437f]/35 overflow-hidden bg-[#0d1635]/55">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#18275a]/70 border-b border-[#33437f]/40 text-slate-300/85">
+                      <th className="text-left py-3 px-3">Invoice ID</th>
+                      <th className="text-left py-3 px-3">Total</th>
+                      <th className="text-left py-3 px-3">Created At</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {history.map((inv) => (
+                      <tr key={inv.invoice_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
+                        <td className="py-2.5 px-3">
+                          <button
+                            onClick={() => fetchInvoice(inv.invoice_id)}
+                            className="text-cyan-200 hover:text-cyan-100 underline underline-offset-4"
+                          >
+                            {inv.invoice_id}
+                          </button>
+                        </td>
+                        <td className="py-2.5 px-3 text-cyan-100">₹ {inv.total_amount}</td>
+                        <td className="py-2.5 px-3 text-slate-200/85">
+                          {new Date(inv.created_at).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </>
           )}
         </div>
@@ -205,19 +211,19 @@ export default function Customers() {
       {/* INVOICE MODAL */}
       {selectedInvoice && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-2xl w-full shadow-2xl">
+          <div className="glass-card border border-[#33437f]/35 rounded-2xl p-6 max-w-2xl w-full shadow-2xl">
 
-            <h2 className="text-xl font-semibold text-indigo-400 mb-4">
+            <h2 className="text-xl font-semibold text-cyan-200 mb-4">
               Invoice #{selectedInvoice.invoice_id}
             </h2>
 
-            <p className="mb-4 text-zinc-400">
+            <p className="mb-4 text-slate-300/80">
               Customer: <span className="text-white">{selectedInvoice.customer_name}</span>
             </p>
 
-            <table className="w-full text-sm">
+            <table className="w-full text-sm rounded-xl overflow-hidden">
               <thead>
-                <tr className="border-b border-zinc-700 text-zinc-400">
+                <tr className="border-b border-[#33437f]/35 text-slate-300/85">
                   <th className="text-left py-2">Product</th>
                   <th className="text-center py-2">Qty</th>
                   <th className="text-right py-2">Price</th>
@@ -226,7 +232,7 @@ export default function Customers() {
               </thead>
               <tbody>
                 {selectedInvoice.items.map((item, i) => (
-                  <tr key={i} className="border-b border-zinc-800">
+                  <tr key={i} className="border-b border-[#33437f]/22">
                     <td className="py-2">{item.name}</td>
                     <td className="py-2 text-center">{item.quantity}</td>
                     <td className="py-2 text-right">₹ {item.price}</td>
@@ -243,7 +249,7 @@ export default function Customers() {
             <div className="mt-6 text-right">
               <button
                 onClick={() => setSelectedInvoice(null)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg"
+                className="btn-primary px-4 py-2"
               >
                 Close
               </button>

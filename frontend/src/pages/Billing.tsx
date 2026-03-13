@@ -295,35 +295,47 @@ export default function Billing() {
             className="input-surface mb-4"
           />
 
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-slate-300/80 border-b border-[#33437f]/35">
-                <th className="py-2 text-left">ID</th>
-                <th className="py-2 text-left">Name</th>
-                <th className="py-2 text-right">Price</th>
-                <th className="py-2 text-center">Stock</th>
-                <th className="py-2 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((p) => (
-                <tr key={p.id} className="border-b border-[#33437f]/25 hover:bg-[#24366c]/18 transition">
-                  <td>{p.id}</td>
-                  <td>{p.name}</td>
-                  <td className="text-right">₹ {p.price}</td>
-                  <td className="text-center">{p.stock}</td>
-                  <td className="text-center">
-                    <button
-                      onClick={() => addToCart(p)}
-                      className="btn-primary px-3 py-1 text-xs"
-                    >
-                      Add
-                    </button>
-                  </td>
+          <div className="rounded-xl border border-[#33437f]/35 overflow-hidden bg-[#0d1635]/55">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-slate-200/90 bg-[#18275a]/70 border-b border-[#33437f]/45">
+                  <th className="py-3 px-3 text-left">ID</th>
+                  <th className="py-3 px-3 text-left">Product</th>
+                  <th className="py-3 px-3 text-right">Price</th>
+                  <th className="py-3 px-3 text-center">Stock</th>
+                  <th className="py-3 px-3 text-center">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredProducts.map((p) => (
+                  <tr key={p.id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#1f3370]/30 transition">
+                    <td className="px-3 py-2.5 text-slate-300">{p.id}</td>
+                    <td className="px-3 py-2.5 font-medium text-slate-100">{p.name}</td>
+                    <td className="px-3 py-2.5 text-right text-cyan-200">₹ {p.price}</td>
+                    <td className="px-3 py-2.5 text-center">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          p.stock <= 10
+                            ? "bg-rose-500/20 text-rose-200"
+                            : "bg-emerald-500/20 text-emerald-200"
+                        }`}
+                      >
+                        {p.stock}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 text-center">
+                      <button
+                        onClick={() => addToCart(p)}
+                        className="btn-primary px-3 py-1 text-xs"
+                      >
+                        Add
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
