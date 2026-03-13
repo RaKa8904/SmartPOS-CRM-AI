@@ -111,8 +111,8 @@ export default function Pricing() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* LEFT */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-        <h2 className="text-lg font-semibold mb-4">
+      <div className="glass-card rounded-2xl p-5 fade-in">
+        <h2 className="section-title text-gradient mb-4">
           Update Product Price
         </h2>
 
@@ -125,7 +125,7 @@ export default function Pricing() {
             </label>
 
             <select
-              className="w-full mt-2 p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white"
+              className="input-surface mt-2"
               value={selectedProductId}
               onChange={(e) => {
                 const val = e.target.value
@@ -149,7 +149,7 @@ export default function Pricing() {
 
             <input
               type="number"
-              className="w-full mt-2 p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white"
+              className="input-surface mt-2"
               value={newPrice}
               onChange={(e) =>
                 setNewPrice(Number(e.target.value))
@@ -158,7 +158,7 @@ export default function Pricing() {
 
             <button
               onClick={updatePrice}
-              className="w-full mt-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition text-white font-medium"
+              className="btn-primary w-full mt-4 py-2 font-medium"
             >
               Update Price
             </button>
@@ -167,14 +167,14 @@ export default function Pricing() {
       </div>
 
       {/* RIGHT */}
-      <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+      <div className="lg:col-span-2 glass-card rounded-2xl p-5 fade-in stagger-1">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
+          <h2 className="section-title">
             Detected Price Drops
           </h2>
 
           <button
-            className="px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm"
+            className="input-surface px-3 py-1 text-sm w-auto"
             onClick={() => {
               if (selectedProductId)
                 fetchPriceDrops(Number(selectedProductId));
@@ -197,7 +197,7 @@ export default function Pricing() {
         ) : (
           <div className="mt-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-[#0d1635]/55 border border-[#33437f]/30 rounded-2xl p-4">
                 <p className="text-sm text-zinc-400">
                   Product
                 </p>
@@ -206,7 +206,7 @@ export default function Pricing() {
                 </p>
               </div>
 
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-[#0d1635]/55 border border-[#33437f]/30 rounded-2xl p-4">
                 <p className="text-sm text-zinc-400">
                   Current Price
                 </p>
@@ -215,7 +215,7 @@ export default function Pricing() {
                 </p>
               </div>
 
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-[#0d1635]/55 border border-[#33437f]/30 rounded-2xl p-4">
                 <p className="text-sm text-zinc-400">
                   Eligible Customers
                 </p>
@@ -225,7 +225,7 @@ export default function Pricing() {
               </div>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 overflow-auto">
+            <div className="rounded-xl border border-[#33437f]/35 overflow-auto bg-[#0d1635]/55 p-4">
               <h3 className="font-semibold mb-3">
                 Eligible Customers
               </h3>
@@ -237,7 +237,7 @@ export default function Pricing() {
               ) : (
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-zinc-400 border-b border-zinc-800">
+                    <tr className="text-slate-300/85 border-b border-[#33437f]/35">
                       <th className="text-left py-2">
                         Customer
                       </th>
@@ -260,7 +260,7 @@ export default function Pricing() {
                       (c, idx) => (
                         <tr
                           key={`${c.invoice_id}-${idx}`}
-                          className="border-b border-zinc-800"
+                          className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition"
                         >
                           <td className="py-2">
                             <div className="font-medium">

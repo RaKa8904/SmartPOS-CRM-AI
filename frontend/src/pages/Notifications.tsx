@@ -132,8 +132,8 @@ export default function Notifications() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* LEFT */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-        <h2 className="text-lg font-semibold mb-4">
+      <div className="glass-card rounded-2xl p-5 fade-in">
+        <h2 className="section-title text-gradient mb-4">
           Send Notifications
         </h2>
 
@@ -142,7 +142,7 @@ export default function Notifications() {
         </label>
 
         <select
-          className="w-full mt-2 p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white"
+          className="input-surface mt-2"
           value={selectedProductId}
           onChange={(e) => {
             const value = e.target.value
@@ -165,8 +165,8 @@ export default function Notifications() {
           disabled={sending || !selectedProductId}
           className={`w-full mt-4 py-2 rounded-lg font-medium transition text-white ${
             sending || !selectedProductId
-              ? "bg-zinc-800 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-500"
+              ? "bg-slate-700/60 cursor-not-allowed"
+              : "btn-primary"
           }`}
         >
           {sending
@@ -181,14 +181,14 @@ export default function Notifications() {
       </div>
 
       {/* RIGHT */}
-      <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+      <div className="lg:col-span-2 glass-card rounded-2xl p-5 fade-in stagger-1">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
+          <h2 className="section-title">
             Eligible Customers
           </h2>
 
           <button
-            className="px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm"
+            className="input-surface px-3 py-1 text-sm w-auto"
             disabled={!selectedProductId || loadingDropData}
             onClick={() => {
               if (selectedProductId)
@@ -214,7 +214,7 @@ export default function Notifications() {
         ) : (
           <div className="mt-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-[#0d1635]/55 border border-[#33437f]/30 rounded-2xl p-4">
                 <p className="text-sm text-zinc-400">
                   Product
                 </p>
@@ -223,7 +223,7 @@ export default function Notifications() {
                 </p>
               </div>
 
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-[#0d1635]/55 border border-[#33437f]/30 rounded-2xl p-4">
                 <p className="text-sm text-zinc-400">
                   Current Price
                 </p>
@@ -232,7 +232,7 @@ export default function Notifications() {
                 </p>
               </div>
 
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-[#0d1635]/55 border border-[#33437f]/30 rounded-2xl p-4">
                 <p className="text-sm text-zinc-400">
                   Count
                 </p>
@@ -242,7 +242,7 @@ export default function Notifications() {
               </div>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 overflow-auto">
+            <div className="rounded-xl border border-[#33437f]/35 overflow-auto bg-[#0d1635]/55 p-4">
               {dropData.eligible_customers.length === 0 ? (
                 <p className="text-zinc-500 text-sm">
                   No eligible customers.
@@ -250,7 +250,7 @@ export default function Notifications() {
               ) : (
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-zinc-400 border-b border-zinc-800">
+                    <tr className="text-slate-300/85 border-b border-[#33437f]/35">
                       <th className="text-left py-2">
                         Customer
                       </th>
@@ -273,7 +273,7 @@ export default function Notifications() {
                       (c) => (
                         <tr
                           key={`${c.customer_id}-${c.invoice_id}`}
-                          className="border-b border-zinc-800"
+                          className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition"
                         >
                           <td className="py-2">
                             <div className="font-medium">

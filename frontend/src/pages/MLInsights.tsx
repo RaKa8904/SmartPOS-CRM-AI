@@ -16,7 +16,7 @@ type CustomerSegment = {
   phone?: string | null;
   total_spent: number;
   total_invoices: number;
-  segment: number;
+  segment: string;
 };
 
 type RecommendationItem = {
@@ -143,10 +143,8 @@ export default function MLInsights() {
 
   /* ---------------- HELPERS ---------------- */
 
-  const segmentLabel = (segment: number) => {
-    if (segment === 1) return "VIP / High Value";
-    if (segment === 0) return "Low Value";
-    return `Segment ${segment}`;
+  const segmentLabel = (segment: string) => {
+    return segment || "Low Value";
   };
 
   /* ---------------- UI ---------------- */
@@ -155,13 +153,13 @@ export default function MLInsights() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       {/* CUSTOMER SEGMENTS */}
-      <div className="lg:col-span-3 bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+      <div className="lg:col-span-3 glass-card rounded-2xl p-5 fade-in">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Customer Segments</h2>
+          <h2 className="section-title text-gradient">Customer Segments</h2>
           <button
             onClick={fetchCustomerSegments}
             disabled={loadingSegments}
-            className="px-3 py-1 rounded-lg text-sm bg-zinc-800 hover:bg-zinc-700"
+            className="input-surface px-3 py-1 rounded-lg text-sm w-auto"
           >
             {loadingSegments ? "Refreshing..." : "Refresh"}
           </button>
@@ -172,10 +170,10 @@ export default function MLInsights() {
         ) : segments.length === 0 ? (
           <p className="text-zinc-500 mt-4">No segment data found.</p>
         ) : (
-          <div className="mt-4 overflow-auto bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+          <div className="mt-4 overflow-auto rounded-xl border border-[#33437f]/35 bg-[#0d1635]/55 p-4">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-zinc-400 border-b border-zinc-800">
+                <tr className="text-slate-300/85 border-b border-[#33437f]/35">
                   <th className="text-left py-2">Customer</th>
                   <th className="text-left py-2">Phone</th>
                   <th className="text-left py-2">Spent</th>
@@ -185,13 +183,13 @@ export default function MLInsights() {
               </thead>
               <tbody>
                 {segments.map((c) => (
-                  <tr key={c.customer_id} className="border-b border-zinc-800">
+                  <tr key={c.customer_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
                     <td className="py-2">{c.name}</td>
                     <td className="py-2">{c.phone ?? "-"}</td>
                     <td className="py-2">₹ {c.total_spent}</td>
                     <td className="py-2">{c.total_invoices}</td>
                     <td className="py-2">
-                      <span className="px-2 py-1 rounded-lg text-xs bg-zinc-800">
+                      <span className="px-2 py-1 rounded-lg text-xs bg-cyan-400/15 text-cyan-200 border border-cyan-300/25">
                         {segmentLabel(c.segment)}
                       </span>
                     </td>
@@ -204,11 +202,11 @@ export default function MLInsights() {
       </div>
 
       {/* RECOMMENDATIONS */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-        <h2 className="text-lg font-semibold">Recommendations</h2>
+      <div className="glass-card rounded-2xl p-5 fade-in stagger-1">
+        <h2 className="section-title">Recommendations</h2>
 
         <select
-          className="w-full mt-3 p-2 rounded-lg bg-zinc-950 border border-zinc-800"
+          className="input-surface mt-3"
           value={selectedRecProductId}
           onChange={(e) =>
             setSelectedRecProductId(e.target.value ? Number(e.target.value) : "")
@@ -230,7 +228,7 @@ export default function MLInsights() {
             recData.recommendations.map((r) => (
               <div
                 key={r.product_id}
-                className="mt-2 p-3 bg-zinc-950 border border-zinc-800 rounded-xl"
+                className="mt-2 p-3 bg-[#0d1635]/55 border border-[#33437f]/30 rounded-xl"
               >
                 <p className="font-medium">{r.name}</p>
                 <p className="text-xs text-zinc-500">Score: {r.score}</p>
@@ -243,11 +241,11 @@ export default function MLInsights() {
       </div>
 
       {/* PREDICT PRICE */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-        <h2 className="text-lg font-semibold">Predict Price</h2>
+      <div className="glass-card rounded-2xl p-5 fade-in stagger-2">
+        <h2 className="section-title">Predict Price</h2>
 
         <select
-          className="w-full mt-3 p-2 rounded-lg bg-zinc-950 border border-zinc-800"
+          className="input-surface mt-3"
           value={selectedPredProductId}
           onChange={(e) =>
             setSelectedPredProductId(e.target.value ? Number(e.target.value) : "")
@@ -268,7 +266,7 @@ export default function MLInsights() {
           ) : typeof predData?.predicted_next_price === "number" ? (
             <div>
               <p className="text-sm text-zinc-400">Next Price</p>
-              <p className="text-xl font-bold text-indigo-400">
+              <p className="text-xl font-bold text-cyan-300">
                 ₹ {predData.predicted_next_price.toFixed(2)}
               </p>
               <p className="text-xs text-zinc-500 mt-1">
