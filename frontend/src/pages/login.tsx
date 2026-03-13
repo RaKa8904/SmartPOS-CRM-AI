@@ -8,6 +8,7 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -43,12 +44,20 @@ export default function Login() {
 
         {/* Password */}
         <input
-          type="password"
-          className="input-surface mb-5"
+          type={showPassword ? "text" : "password"}
+          className="input-surface mb-2"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <label className="flex items-center gap-2 text-xs text-slate-300/75 mb-5 select-none">
+          <input
+            type="checkbox"
+            checked={showPassword}
+            onChange={(e) => setShowPassword(e.target.checked)}
+          />
+          Show password
+        </label>
 
         {/* Button */}
         <button

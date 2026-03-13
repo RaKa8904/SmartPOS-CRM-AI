@@ -20,6 +20,10 @@ function isExpired(payload: Record<string, string | number> | null): boolean {
   return payload.exp <= now;
 }
 
+function asString(value: string | number | undefined): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const accessToken = localStorage.getItem("access_token");
   const legacyToken = localStorage.getItem("token");
@@ -38,10 +42,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const [user, setUser] = useState<string | null>(
-    stored && !isExpired(storedPayload) ? (storedPayload?.sub as string | null) ?? null : null
+    stored && !isExpired(storedPayload)
+      ? asString(storedPayload?.name as string | number | undefined)
+        ?? asString(storedPayload?.sub as string | number | undefined)
+      : null
+  );
+  const [email, setEmail] = useState<string | null>(
+    stored && !isExpired(storedPayload)
+      ? asString(storedPayload?.sub as string | number | undefined)
+      : null
   );
   const [role, setRole] = useState<string | null>(
-    stored && !isExpired(storedPayload) ? (storedPayload?.role as string | null) ?? null : null
+    stored && !isExpired(storedPayload) ? asString(storedPayload?.role as string | number | undefined) : null
   );
 
   const login = async (email: string, password: string) => {
@@ -49,24 +61,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = res.data.access_token;
     localStorage.setItem("access_token", token);
     const payload = decodeToken(token);
-    setUser((payload?.sub as string | undefined) ?? email);
+    setUser(asString(payload?.name as string | number | undefined) ?? (res.data.username as string | undefined) ?? email);
+    setEmail(asString(payload?.sub as string | number | undefined) ?? email);
     setRole((payload?.role as string | undefined) ?? res.data.role ?? "cashier");
   };
 
-  const register = async (email: string, password: string, roleArg?: string) => {
-    await api.post("/auth/register", { email, password, role: roleArg });
+  const register = async (email: string, username: string, password: string, roleArg?: string) => {
+    await api.post("/auth/register", { email, username, password, role: roleArg });
     await login(email, password);
   };
 
   const logout = () => {
     localStorage.removeItem("access_token");
     setUser(null);
+    setEmail(null);
     setRole(null);
   };
 
 
   return (
-    <AuthContext.Provider value={{ user, role, login, register, logout }}>
+    <AuthContext.Provider value={{ user, email, role, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

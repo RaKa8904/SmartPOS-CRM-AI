@@ -38,6 +38,7 @@ def _run_migrations():
         "ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS line_tax FLOAT DEFAULT 0.0",
         # RBAC role column
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'cashier'",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(80) DEFAULT ''",
         # User administration metadata
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS session_revoked BOOLEAN DEFAULT FALSE",

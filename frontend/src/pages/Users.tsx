@@ -6,6 +6,7 @@ import { useAuth } from "../context/useAuth";
 type UserRow = {
   id: number;
   email: string;
+  username: string;
   role: "admin" | "manager" | "cashier";
   is_active: boolean;
   created_at: string | null;
@@ -28,17 +29,20 @@ function errorDetail(err: unknown, fallback: string): string {
 }
 
 export default function Users() {
-  const { user: currentUserEmail } = useAuth();
+  const { email: currentUserEmail } = useAuth();
   const [rows, setRows] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | UserRow["role"]>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "disabled">("all");
+  const [nameDraft, setNameDraft] = useState<Record<number, string>>({});
 
   const loadUsers = async () => {
     const res = await api.get<UserRow[]>("/users/list");
-    setRows(res.data ?? []);
+    const next = res.data ?? [];
+    setRows(next);
+    setNameDraft(Object.fromEntries(next.map((r) => [r.id, r.username ?? ""])));
   };
 
   useEffect(() => {
@@ -55,7 +59,11 @@ export default function Users() {
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
-      const matchesSearch = !q || r.email.toLowerCase().includes(q) || String(r.id).includes(q);
+      const matchesSearch =
+        !q ||
+        r.email.toLowerCase().includes(q) ||
+        r.username.toLowerCase().includes(q) ||
+        String(r.id).includes(q);
       const matchesRole = roleFilter === "all" || r.role === roleFilter;
       const matchesStatus =
         statusFilter === "all" ||
@@ -102,6 +110,23 @@ export default function Users() {
     }
   };
 
+  const updateUsername = async (id: number) => {
+    const username = (nameDraft[id] ?? "").trim();
+    if (!username) {
+      alert("Username cannot be empty");
+      return;
+    }
+    setBusyId(id);
+    try {
+      await api.put(`/users/${id}/username`, { username });
+      await loadUsers();
+    } catch (err: unknown) {
+      alert(errorDetail(err, "Failed to update username"));
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   if (loading) return <p className="text-zinc-400">Loading users...</p>;
 
   return (
@@ -119,7 +144,7 @@ export default function Users() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by email or ID"
+              placeholder="Search by email, username, or ID"
               className="input-surface"
             />
             <select
@@ -152,6 +177,7 @@ export default function Users() {
               <tr>
                 <th className="py-3 px-4 text-left">ID</th>
                 <th className="py-3 px-4 text-left">Email</th>
+                <th className="py-3 px-4 text-left">Username</th>
                 <th className="py-3 px-4 text-left">Role</th>
                 <th className="py-3 px-4 text-left">Status</th>
                 <th className="py-3 px-4 text-left">Created</th>
@@ -168,6 +194,25 @@ export default function Users() {
                   <tr key={row.id} className="border-t border-[#33437f]/25 odd:bg-[#11204b]/25">
                     <td className="py-3 px-4 text-slate-300">{row.id}</td>
                     <td className="py-3 px-4 text-slate-100">{row.email}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={nameDraft[row.id] ?? ""}
+                          onChange={(e) =>
+                            setNameDraft((prev) => ({ ...prev, [row.id]: e.target.value }))
+                          }
+                          className="input-surface h-9 py-1"
+                          placeholder="Username"
+                        />
+                        <button
+                          onClick={() => updateUsername(row.id)}
+                          disabled={busy}
+                          className="px-3 py-1.5 text-xs font-medium rounded-lg border border-cyan-300/35 bg-cyan-400/12 text-cyan-100 hover:bg-cyan-400/18 disabled:opacity-40"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </td>
                     <td className="py-3 px-4">
                       <select
                         value={row.role}
@@ -238,7 +283,7 @@ export default function Users() {
               })}
               {visibleRows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-400">
+                  <td colSpan={9} className="py-8 text-center text-slate-400">
                     No users match your current filters.
                   </td>
                 </tr>

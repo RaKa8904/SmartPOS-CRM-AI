@@ -18,6 +18,7 @@ router = APIRouter()
 
 class RegisterRequest(BaseModel):
     email: EmailStr
+    username: Optional[str] = None
     password: str
     role: Optional[str] = None  # admin / manager / cashier (auto-assigned if omitted)
 
@@ -34,6 +35,7 @@ class LoginRequest(BaseModel):
 @router.post("/register")
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     email = payload.email
+    username = (payload.username or "").strip()
     password = payload.password
 
     if db.query(User).filter(User.email == email).first():
@@ -50,6 +52,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
     user = User(
         email=email,
+        username=username if username else email.split("@")[0],
         hashed_password=hash_password(password),
         role=role,
         is_active=True,
@@ -60,7 +63,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    return {"message": "User registered successfully", "role": role}
+    return {"message": "User registered successfully", "role": role, "username": user.username}
 
 
 @router.post("/login")
@@ -81,10 +84,11 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     db.commit()
 
     # Embed role in JWT so frontend and backend can enforce RBAC
-    token = create_access_token({"sub": user.email, "role": user.role})
+    token = create_access_token({"sub": user.email, "role": user.role, "name": user.username})
 
     return {
         "access_token": token,
         "token_type": "bearer",
         "role": user.role,
+        "username": user.username,
     }

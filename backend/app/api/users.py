@@ -19,6 +19,10 @@ class UpdateStatusRequest(BaseModel):
     is_active: bool
 
 
+class UpdateUsernameRequest(BaseModel):
+    username: str
+
+
 @router.get("/list")
 def list_users(
     db: Session = Depends(get_db),
@@ -29,6 +33,7 @@ def list_users(
         {
             "id": u.id,
             "email": u.email,
+            "username": u.username,
             "role": u.role,
             "is_active": bool(u.is_active),
             "created_at": u.created_at.isoformat() if u.created_at else None,
@@ -94,6 +99,29 @@ def update_user_status(
     db.commit()
 
     return {"message": "Status updated", "user_id": target.id, "is_active": bool(target.is_active)}
+
+
+@router.put("/{user_id}/username")
+def update_user_username(
+    user_id: int,
+    payload: UpdateUsernameRequest,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin")),
+):
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    new_name = payload.username.strip()
+    if not new_name:
+        raise HTTPException(status_code=400, detail="Username cannot be empty")
+    if len(new_name) > 80:
+        raise HTTPException(status_code=400, detail="Username must be <= 80 characters")
+
+    target.username = new_name
+    db.commit()
+
+    return {"message": "Username updated", "user_id": target.id, "username": target.username}
 
 
 @router.post("/{user_id}/revoke-session")

@@ -22,7 +22,7 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export default function Layout() {
-  const { logout, user, role } = useAuth();
+  const { logout, user, email, role } = useAuth();
   const navigate = useNavigate();
 
   const navItems = allNavItems.filter(
@@ -78,7 +78,7 @@ export default function Layout() {
           <div className="flex items-center gap-4">
             {user && (
               <span className="text-xs text-slate-300/80 glass-card px-3 py-1 rounded-full border border-slate-400/30">
-                {user}
+                {user}{email && email !== user ? ` (${email})` : ""}
               </span>
             )}
 
