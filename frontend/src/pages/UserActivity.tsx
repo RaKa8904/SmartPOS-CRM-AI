@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Cell,
-  Pie,
-  PieChart,
+  Area,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
   ResponsiveContainer,
-  Treemap,
   Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 
 import { api } from "../api";
@@ -96,54 +101,16 @@ export default function UserActivity() {
     [summary]
   );
 
-  const totalInvoices = useMemo(
-    () => perCashierChart.reduce((acc, row) => acc + row.invoices_count, 0),
-    [perCashierChart]
-  );
-
-  const invoicesShareData = useMemo(
+  const billingComparison = useMemo(
     () =>
-      perCashierChart.map((row, idx) => ({
-        name: row.cashier_short,
-        full_name: row.cashier_email,
-        value: row.invoices_count,
-        fill: ["#22d3ee", "#38bdf8", "#60a5fa", "#818cf8", "#2dd4bf", "#0ea5e9", "#4ade80", "#34d399"][idx % 8],
-      })),
-    [perCashierChart]
-  );
-
-  const billingTreemap = useMemo(
-    () =>
-      topBillingChart.map((row, idx) => ({
-        name: row.cashier_short,
-        full_name: row.cashier_email,
-        size: row.total_billing,
-        invoices: row.invoices_count,
-        fill: ["#16a34a", "#22c55e", "#10b981", "#14b8a6", "#06b6d4"][idx % 5],
+      topBillingChart.map((row) => ({
+        cashier_short: row.cashier_short,
+        cashier_email: row.cashier_email,
+        total_billing: Number(row.total_billing.toFixed(2)),
+        invoices_count: row.invoices_count,
       })),
     [topBillingChart]
   );
-
-  const renderTreemapContent = (props: {
-    x?: number;
-    y?: number;
-    width?: number;
-    height?: number;
-    name?: string;
-    fill?: string;
-    index?: number;
-  }) => {
-    const { x = 0, y = 0, width = 0, height = 0, name = "", fill = "#0ea5e9" } = props;
-    if (width < 40 || height < 28) return <g />;
-    return (
-      <g>
-        <rect x={x} y={y} width={width} height={height} rx={8} ry={8} fill={fill} fillOpacity={0.85} stroke="#0b1029" strokeWidth={2} />
-        <text x={x + 8} y={y + 18} fill="#eef7ff" fontSize={11} fontWeight={700}>
-          {name}
-        </text>
-      </g>
-    );
-  };
 
   if (loading) return <p className="text-zinc-400">Loading activity metrics...</p>;
   if (!summary) return <p className="text-red-300">Could not load activity dashboard.</p>;
@@ -181,10 +148,24 @@ export default function UserActivity() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="glass-card rounded-2xl p-5 fade-in">
-          <h3 className="text-lg font-semibold mb-1">Invoices Share by Cashier</h3>
-          <p className="text-xs text-slate-300/70 mb-4">Radial split of invoice contribution</p>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
+          <h3 className="text-lg font-semibold mb-1">Invoices Created Per Cashier</h3>
+          <p className="text-xs text-slate-300/70 mb-4">Ranked horizontal bars with exact counts</p>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart
+              data={perCashierChart}
+              layout="vertical"
+              margin={{ top: 4, right: 20, left: 12, bottom: 4 }}
+              barSize={20}
+            >
+              <CartesianGrid strokeDasharray="4 4" stroke="#213063" opacity={0.5} />
+              <XAxis type="number" stroke="#9fb8e0" allowDecimals={false} />
+              <YAxis
+                type="category"
+                dataKey="cashier_short"
+                width={130}
+                stroke="#9fb8e0"
+                tick={{ fontSize: 11 }}
+              />
               <Tooltip
                 contentStyle={{
                   background: "#131a38",
@@ -193,44 +174,32 @@ export default function UserActivity() {
                   color: "#dbe8ff",
                 }}
                 formatter={(value, _name, item) => {
-                  const row = item.payload as { full_name: string };
-                  const numericValue = Number(value ?? 0);
-                  const pct = totalInvoices > 0 ? ((numericValue / totalInvoices) * 100).toFixed(1) : "0.0";
-                  return [`${numericValue} invoices (${pct}%)`, row.full_name];
+                  const row = item.payload as { cashier_email: string };
+                  return [`${Number(value ?? 0)} invoices`, row.cashier_email];
                 }}
               />
-              <Pie
-                data={invoicesShareData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={66}
-                outerRadius={108}
-                paddingAngle={2}
-                stroke="#0e1538"
-                strokeWidth={2}
-              >
-                {invoicesShareData.map((entry) => (
-                  <Cell key={entry.name} fill={entry.fill} />
-                ))}
-              </Pie>
-            </PieChart>
+              <Bar dataKey="invoices_count" radius={[0, 10, 10, 0]} fill="#2dd4bf" />
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
         <div className="glass-card rounded-2xl p-5 fade-in stagger-1">
-          <h3 className="text-lg font-semibold mb-1">Top Staff Billing Footprint</h3>
-          <p className="text-xs text-slate-300/70 mb-4">Treemap view sized by total billing</p>
-          <ResponsiveContainer width="100%" height={300}>
-            <Treemap
-              data={billingTreemap}
-              dataKey="size"
-              nameKey="name"
-              stroke="#0e1538"
-              fill="#22c55e"
-              content={renderTreemapContent}
-            >
+          <h3 className="text-lg font-semibold mb-1">Top Staff Billing Volume</h3>
+          <p className="text-xs text-slate-300/70 mb-4">Area + line comparison of revenue and invoice count</p>
+          <ResponsiveContainer width="100%" height={320}>
+            <ComposedChart data={billingComparison} margin={{ top: 8, right: 16, left: 4, bottom: 50 }}>
+              <CartesianGrid strokeDasharray="4 4" stroke="#213063" opacity={0.5} />
+              <XAxis
+                dataKey="cashier_short"
+                stroke="#9fb8e0"
+                interval={0}
+                angle={-18}
+                textAnchor="end"
+                height={52}
+                tick={{ fontSize: 11 }}
+              />
+              <YAxis yAxisId="left" stroke="#9fb8e0" tickFormatter={(v) => `Rs ${v}`} />
+              <YAxis yAxisId="right" orientation="right" stroke="#d7b9ff" allowDecimals={false} />
               <Tooltip
                 contentStyle={{
                   background: "#131a38",
@@ -239,11 +208,34 @@ export default function UserActivity() {
                   color: "#dbe8ff",
                 }}
                 formatter={(value, _name, item) => {
-                  const row = item.payload as { full_name: string; invoices: number };
-                  return [`Rs ${Number(value ?? 0).toFixed(2)} (${row.invoices} invoices)`, row.full_name];
+                  const row = item.payload as { cashier_email: string; invoices_count: number };
+                  if (item.dataKey === "total_billing") {
+                    return [`Rs ${Number(value ?? 0).toFixed(2)}`, `${row.cashier_email} (Billing)`];
+                  }
+                  return [`${Number(value ?? 0)} invoices`, `${row.cashier_email} (Invoices)`];
                 }}
               />
-            </Treemap>
+              <Legend wrapperStyle={{ fontSize: "11px" }} />
+              <Area
+                yAxisId="left"
+                type="monotone"
+                dataKey="total_billing"
+                name="Billing Amount"
+                fill="#22c55e"
+                fillOpacity={0.35}
+                stroke="#4ade80"
+                strokeWidth={2}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="invoices_count"
+                name="Invoice Count"
+                stroke="#c084fc"
+                strokeWidth={3}
+                dot={{ r: 4, strokeWidth: 2, fill: "#0f1434" }}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </div>
