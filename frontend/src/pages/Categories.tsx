@@ -55,28 +55,28 @@ export default function Categories() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-        <h2 className="text-lg font-semibold mb-4">Product Categories</h2>
+      <div className="glass-card rounded-2xl p-6 fade-in">
+        <h2 className="section-title text-gradient mb-4">Product Categories</h2>
 
         <div className="flex gap-3">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Category name"
-            className="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl p-2"
+            className="input-surface flex-1"
           />
           <button
             onClick={addCategory}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl"
+            className="btn-primary px-4 py-2"
           >
             Add
           </button>
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+      <div className="glass-card rounded-2xl overflow-hidden fade-in stagger-1">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-800/50 text-zinc-400">
+          <thead className="bg-[#1b214a]/70 text-slate-300/80">
             <tr>
               <th className="text-left px-4 py-3">ID</th>
               <th className="text-left px-4 py-3">Name</th>
@@ -85,13 +85,13 @@ export default function Categories() {
           </thead>
           <tbody>
             {categories.map((c) => (
-              <tr key={c.id} className="border-t border-zinc-800">
+              <tr key={c.id} className="border-t border-[#3c4a8f]/30 hover:bg-[#203063]/20 transition">
                 <td className="px-4 py-3">{c.id}</td>
                 <td className="px-4 py-3">{c.name}</td>
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={() => deleteCategory(c.id)}
-                    className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded-lg text-xs"
+                    className="btn-danger px-3 py-1 rounded-lg text-xs"
                   >
                     Delete
                   </button>

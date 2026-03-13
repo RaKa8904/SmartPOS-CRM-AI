@@ -85,28 +85,28 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* HEADER */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Overview</h2>
+        <h2 className="section-title text-gradient">Performance Overview</h2>
       </div>
 
       {/* KPI CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-          <p className="text-sm text-zinc-400">VIP Customers</p>
+        <div className="glass-card rounded-2xl p-5 fade-in">
+          <p className="text-sm text-slate-300/80">VIP Customers</p>
           <p className="text-3xl font-bold text-green-400">
             {vipCount}
           </p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-          <p className="text-sm text-zinc-400">Low Value Customers</p>
+        <div className="glass-card rounded-2xl p-5 fade-in stagger-1">
+          <p className="text-sm text-slate-300/80">Low Value Customers</p>
           <p className="text-3xl font-bold text-yellow-400">
             {lowCount}
           </p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-          <p className="text-sm text-zinc-400">Total Customers</p>
-          <p className="text-3xl font-bold text-indigo-400">
+        <div className="glass-card rounded-2xl p-5 fade-in stagger-2">
+          <p className="text-sm text-slate-300/80">Total Customers</p>
+          <p className="text-3xl font-bold text-cyan-300">
             {segments.length}
           </p>
         </div>
@@ -115,7 +115,7 @@ export default function Dashboard() {
       {/* CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* PIE CHART */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+        <div className="glass-card rounded-2xl p-5 fade-in">
           <h3 className="text-lg font-semibold mb-4">
             Customer Segments
           </h3>
@@ -139,7 +139,7 @@ export default function Dashboard() {
         </div>
 
         {/* TOP CUSTOMERS */}
-<div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+<div className="glass-card rounded-2xl p-5 fade-in stagger-1">
   <h3 className="text-lg font-semibold mb-4">
     Top Customers by Spend
   </h3>
@@ -163,7 +163,7 @@ export default function Dashboard() {
 </div>
 
         {/* TOP PRODUCTS */}
-<div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+<div className="glass-card rounded-2xl p-5 fade-in stagger-2">
   <h3 className="text-lg font-semibold mb-4">
     Top Products by Revenue
   </h3>

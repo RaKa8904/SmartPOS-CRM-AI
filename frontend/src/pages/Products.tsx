@@ -101,35 +101,35 @@ export default function Products() {
     <div className="space-y-8">
 
       {/* ADD PRODUCT CARD */}
-      <div className="bg-linear-to-br from-zinc-900 to-zinc-800 border border-zinc-700 rounded-2xl p-6 shadow-xl">
-        <h2 className="text-lg font-semibold mb-4">Add New Product</h2>
+      <div className="glass-card rounded-2xl p-6 shadow-xl fade-in">
+        <h2 className="section-title text-gradient mb-4">Add New Product</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input
             placeholder="Product Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="bg-zinc-950 border border-zinc-700 rounded-xl p-2"
+            className="input-surface"
           />
           <input
             placeholder="SKU"
             value={sku}
             onChange={(e) => setSku(e.target.value)}
-            className="bg-zinc-950 border border-zinc-700 rounded-xl p-2"
+            className="input-surface"
           />
           <input
             type="number"
             placeholder="Price"
             value={price}
             onChange={(e) => setPrice(Number(e.target.value))}
-            className="bg-zinc-950 border border-zinc-700 rounded-xl p-2"
+            className="input-surface"
           />
           <input
             type="number"
             placeholder="Stock"
             value={stock}
             onChange={(e) => setStock(Number(e.target.value))}
-            className="bg-zinc-950 border border-zinc-700 rounded-xl p-2"
+            className="input-surface"
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -138,12 +138,12 @@ export default function Products() {
             placeholder="GST Rate % (e.g. 18)"
             value={taxRate}
             onChange={(e) => setTaxRate(Number(e.target.value))}
-            className="bg-zinc-950 border border-zinc-700 rounded-xl p-2"
+            className="input-surface"
           />
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}
-            className="bg-zinc-950 border border-zinc-700 rounded-xl p-2 text-zinc-300"
+            className="input-surface"
           >
             <option value="">No Category</option>
             {categories.map((c) => (
@@ -154,7 +154,7 @@ export default function Products() {
 
         <button
           onClick={addProduct}
-          className="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-medium"
+          className="btn-primary mt-4 px-6 py-2 font-medium"
         >
           Add Product
         </button>
@@ -165,13 +165,13 @@ export default function Products() {
         placeholder="Search by name or ID..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3"
+        className="input-surface"
       />
 
       {/* PRODUCT TABLE */}
-      <div className="bg-linear-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-2xl shadow-xl overflow-hidden">
+      <div className="glass-card rounded-2xl shadow-xl overflow-hidden fade-in stagger-1">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-900/70 text-zinc-400">
+          <thead className="bg-[#1b214a]/70 text-slate-300/80">
             <tr>
               <th className="py-3 px-4 text-left">ID</th>
               <th className="py-3 px-4 text-left">Name</th>
@@ -187,7 +187,7 @@ export default function Products() {
             {filtered.map((p) => (
               <tr
                 key={p.id}
-                className="border-b border-zinc-800 hover:bg-zinc-900/40 transition"
+                className="border-b border-[#33437f]/25 hover:bg-[#24366c]/20 transition"
               >
                 <td className="px-4 py-3">{p.id}</td>
                 <td className="px-4 py-3 font-medium">{p.name}</td>
@@ -218,19 +218,19 @@ export default function Products() {
                         }))
                       }
                       placeholder="Qty"
-                      className="w-16 bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-xs"
+                      className="w-16 input-surface px-2 py-1 text-xs"
                     />
 
                     <button
                       onClick={() => restockProduct(p.id)}
-                      className="px-3 py-1 bg-green-600 hover:bg-green-500 rounded-lg text-xs"
+                      className="px-3 py-1 bg-emerald-600/85 hover:bg-emerald-500 rounded-lg text-xs"
                     >
                       Restock
                     </button>
 
                     <button
                       onClick={() => deleteProduct(p.id)}
-                      className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded-lg text-xs"
+                      className="btn-danger px-3 py-1 rounded-lg text-xs"
                     >
                       Delete
                     </button>

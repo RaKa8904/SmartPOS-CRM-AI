@@ -177,9 +177,9 @@ export default function Billing() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* LEFT PANEL */}
-        <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4">
+        <div className="glass-card p-6 rounded-2xl space-y-4 fade-in">
           <select
-            className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+            className="input-surface"
             value={customerId}
             onChange={(e) =>
               setCustomerId(e.target.value ? Number(e.target.value) : "")
@@ -204,7 +204,7 @@ export default function Billing() {
             {cart.map((i) => (
               <div
                 key={i.product_id}
-                className="flex items-center justify-between bg-zinc-950 p-3 rounded-lg border border-zinc-800"
+                className="flex items-center justify-between bg-[#0b1635]/80 p-3 rounded-lg border border-[#33437f]/40"
               >
                 <div>
                   <p className="text-sm font-medium">{i.name}</p>
@@ -214,10 +214,10 @@ export default function Billing() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button onClick={() => decreaseQty(i.product_id)} className="px-2 py-1 bg-zinc-800 rounded text-xs">−</button>
+                  <button onClick={() => decreaseQty(i.product_id)} className="px-2 py-1 bg-slate-700/70 rounded text-xs">−</button>
                   <span className="text-sm w-5 text-center">{i.qty}</span>
-                  <button onClick={() => increaseQty(i.product_id)} className="px-2 py-1 bg-zinc-800 rounded text-xs">+</button>
-                  <button onClick={() => removeItem(i.product_id)} className="px-2 py-1 bg-red-600 rounded text-xs">✕</button>
+                  <button onClick={() => increaseQty(i.product_id)} className="px-2 py-1 bg-slate-700/70 rounded text-xs">+</button>
+                  <button onClick={() => removeItem(i.product_id)} className="px-2 py-1 bg-rose-600/80 rounded text-xs">✕</button>
                 </div>
 
                 <div className="text-sm font-medium">
@@ -227,16 +227,16 @@ export default function Billing() {
             ))}
           </div>
 
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-sm space-y-1">
+          <div className="bg-[#0b1635]/80 border border-[#33437f]/40 rounded-lg p-3 text-sm space-y-1">
             <p className="text-zinc-400">Subtotal: Rs {subtotal.toFixed(2)}</p>
             <p className="text-zinc-400">Estimated GST: Rs {estimatedTax.toFixed(2)}</p>
-            <p className="text-indigo-400 font-bold">Payable Total: Rs {estimatedGrandTotal.toFixed(2)}</p>
+            <p className="text-cyan-300 font-bold">Payable Total: Rs {estimatedGrandTotal.toFixed(2)}</p>
           </div>
 
           {/* Payment Method */}
           <div className="space-y-2">
             <select
-              className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+              className="input-surface"
               value={paymentMethod}
               onChange={(e) => {
                 setPaymentMethod(e.target.value);
@@ -259,7 +259,7 @@ export default function Billing() {
                 onChange={(e) =>
                   setAmountTendered(e.target.value ? Number(e.target.value) : "")
                 }
-                className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+                className="input-surface"
               />
             )}
 
@@ -279,25 +279,25 @@ export default function Billing() {
           <button
             onClick={createInvoice}
             disabled={!customerId || cart.length === 0}
-            className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500"
+            className="btn-primary w-full py-2"
           >
             Generate Invoice
           </button>
         </div>
 
         {/* PRODUCTS */}
-        <div className="lg:col-span-2 bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
+        <div className="lg:col-span-2 glass-card p-6 rounded-2xl fade-in stagger-1">
           <input
             type="text"
             placeholder="Search by Product Name or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full mb-4 p-2 rounded-lg bg-zinc-950 border border-zinc-800"
+            className="input-surface mb-4"
           />
 
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-zinc-400 border-b border-zinc-800">
+              <tr className="text-slate-300/80 border-b border-[#33437f]/35">
                 <th className="py-2 text-left">ID</th>
                 <th className="py-2 text-left">Name</th>
                 <th className="py-2 text-right">Price</th>
@@ -307,7 +307,7 @@ export default function Billing() {
             </thead>
             <tbody>
               {filteredProducts.map((p) => (
-                <tr key={p.id} className="border-b border-zinc-800">
+                <tr key={p.id} className="border-b border-[#33437f]/25 hover:bg-[#24366c]/18 transition">
                   <td>{p.id}</td>
                   <td>{p.name}</td>
                   <td className="text-right">₹ {p.price}</td>
@@ -315,7 +315,7 @@ export default function Billing() {
                   <td className="text-center">
                     <button
                       onClick={() => addToCart(p)}
-                      className="px-3 py-1 bg-indigo-600 rounded text-xs"
+                      className="btn-primary px-3 py-1 text-xs"
                     >
                       Add
                     </button>
@@ -330,7 +330,7 @@ export default function Billing() {
       {/* INVOICE MODAL */}
       {invoiceData && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 print:bg-white">
-          <div className="bg-zinc-900 print:bg-white print:text-black border border-zinc-800 rounded-2xl p-6 w-full max-w-2xl">
+          <div className="glass-card print:bg-white print:text-black border border-[#33437f]/35 rounded-2xl p-6 w-full max-w-2xl">
 
             <h2 className="text-xl font-semibold mb-2">
               Invoice #{invoiceData.invoice_id}

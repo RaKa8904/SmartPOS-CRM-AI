@@ -29,13 +29,14 @@ export default function Layout() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex">
+    <div className="app-shell min-h-screen text-zinc-100 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-zinc-900 border-r border-zinc-800 p-5 hidden md:block">
+      <aside className="w-72 glass-card border-r border-[#3b4488]/40 p-5 hidden md:block fade-in">
         <div className="text-xl font-bold tracking-wide">
-          Smart<span className="text-indigo-400">POS</span>
+          <span className="text-gradient">Smart</span>
+          <span className="text-cyan-100">POS</span>
         </div>
-        <p className="text-xs text-zinc-400 mt-1">CRM • AI • POS</p>
+        <p className="text-xs text-slate-300/75 mt-1">CRM • AI • POS Platform</p>
 
         <nav className="mt-8 flex flex-col gap-2">
           {navItems.map((item) => (
@@ -44,10 +45,10 @@ export default function Layout() {
               to={item.path}
               end={item.path === "/"}
               className={({ isActive }) =>
-                `px-4 py-2 rounded-xl text-sm font-medium transition ${
+                `px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 ${
                   isActive
-                    ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                    : "text-zinc-300 hover:bg-zinc-800"
+                    ? "bg-cyan-400/16 text-cyan-200 border border-cyan-300/35 glow-ring"
+                    : "text-slate-200/90 hover:bg-slate-400/10 hover:text-cyan-100"
                 }`
               }
             >
@@ -56,11 +57,11 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="mt-10 text-xs text-zinc-500">
+        <div className="mt-10 text-xs text-slate-300/65">
           <p>Backend: 127.0.0.1:8000</p>
           <p>Frontend: localhost:5173</p>
           {role && (
-            <p className={`mt-2 font-semibold capitalize ${ROLE_COLORS[role] ?? "text-zinc-400"}`}>
+            <p className={`mt-2 font-semibold capitalize ${ROLE_COLORS[role] ?? "text-slate-300"}`}>
               Role: {role}
             </p>
           )}
@@ -70,20 +71,19 @@ export default function Layout() {
       {/* Main */}
       <main className="flex-1">
         {/* Topbar */}
-        <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/60 backdrop-blur">
-          <h1 className="text-lg font-semibold">SmartPOS</h1>
+        <header className="flex items-center justify-between px-6 py-4 border-b border-[#4550a0]/35 bg-[#120f2f]/65 backdrop-blur-xl fade-in">
+          <h1 className="text-lg font-semibold text-cyan-100 tracking-wide">SmartPOS Console</h1>
 
           <div className="flex items-center gap-4">
             {user && (
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-slate-300/80 glass-card px-3 py-1 rounded-full border border-slate-400/30">
                 {user}
               </span>
             )}
 
             <button
               onClick={() => { logout(); navigate("/login"); }}
-              className="bg-red-600/20 text-red-400 border border-red-600/30
-                         px-3 py-1.5 rounded-lg text-xs font-medium
+              className="btn-danger px-3 py-1.5 rounded-lg text-xs font-medium
                          hover:bg-red-600/30 transition"
             >
               Logout
@@ -93,7 +93,7 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <div className="p-6">
+        <div className="p-4 md:p-6 fade-in stagger-1">
           <Outlet />
         </div>
       </main>
