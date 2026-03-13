@@ -6,6 +6,7 @@ from app.db.deps import get_db
 from app.models.product import Product
 from app.models.price_history import ProductPriceHistory
 from app.core.dependencies import require_role
+from app.core.audit import write_audit_log
 
 router = APIRouter(prefix="/pricing", tags=["Pricing"])
 
@@ -17,7 +18,7 @@ class UpdatePriceRequest(BaseModel):
 def update_price(
     payload: UpdatePriceRequest,
     db: Session = Depends(get_db),
-    _=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "manager")),
 ):
     product = db.query(Product).filter(Product.id == payload.product_id).first()
     if not product:
@@ -40,6 +41,14 @@ def update_price(
 
     # update product
     product.price = payload.new_price
+    write_audit_log(
+        db,
+        actor_email=current["email"],
+        action="price_updated",
+        entity_type="product",
+        entity_id=str(product.id),
+        details={"product_name": product.name, "old_price": old_price, "new_price": payload.new_price},
+    )
     db.commit()
 
     return {

@@ -8,6 +8,7 @@ from app.db.deps import get_db
 from app.models.user import User
 from app.core.security import hash_password, verify_password
 from app.core.jwt import create_access_token
+from app.core.audit import write_audit_log
 
 router = APIRouter()
 
@@ -81,6 +82,14 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
     user.last_login_at = datetime.now(timezone.utc)
     user.session_revoked = False
+    write_audit_log(
+        db,
+        actor_email=user.email,
+        action="login",
+        entity_type="auth",
+        entity_id=str(user.id),
+        details={"role": user.role},
+    )
     db.commit()
 
     # Embed role in JWT so frontend and backend can enforce RBAC

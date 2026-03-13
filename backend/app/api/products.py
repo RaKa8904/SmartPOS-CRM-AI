@@ -5,6 +5,7 @@ from app.db.deps import get_db
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductOut
 from app.core.dependencies import require_role, get_current_user
+from app.core.audit import write_audit_log
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -80,7 +81,7 @@ def update_product(
 def delete_product(
     product_id: int,
     db: Session = Depends(get_db),
-    _=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "manager")),
 ):
     product = db.query(Product).filter(
         Product.id == product_id,
@@ -92,6 +93,14 @@ def delete_product(
 
     # Soft delete instead of hard delete
     product.is_active = False
+    write_audit_log(
+        db,
+        actor_email=current["email"],
+        action="product_deleted",
+        entity_type="product",
+        entity_id=str(product.id),
+        details={"name": product.name, "sku": product.sku},
+    )
     db.commit()
 
     return {"message": "Product archived successfully"}

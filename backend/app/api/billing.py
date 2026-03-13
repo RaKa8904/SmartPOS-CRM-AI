@@ -9,6 +9,7 @@ from app.models.customer import Customer
 from app.schemas.billing import CreateInvoiceRequest
 from app.core.email_sender import send_email
 from app.core.dependencies import get_current_user
+from app.core.audit import write_audit_log
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
 
@@ -52,7 +53,7 @@ def create_invoice(
     payload: CreateInvoiceRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    current=Depends(get_current_user),
 ):
     if not payload.items:
         raise HTTPException(status_code=400, detail="No items provided")
@@ -135,6 +136,20 @@ def create_invoice(
             raise HTTPException(status_code=400, detail="Amount tendered is less than total")
         invoice.amount_tendered = payload.amount_tendered
         invoice.change_due = round(payload.amount_tendered - grand_total, 2)
+
+    write_audit_log(
+        db,
+        actor_email=current["email"],
+        action="invoice_created",
+        entity_type="invoice",
+        entity_id=str(invoice.id),
+        details={
+            "customer_id": payload.customer_id,
+            "items_count": len(payload.items),
+            "total_amount": grand_total,
+            "payment_method": payment_method,
+        },
+    )
 
     db.commit()
 

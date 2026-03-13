@@ -5,6 +5,7 @@ from app.db.deps import get_db
 from app.models.category import Category
 from app.schemas.category import CategoryCreate, CategoryOut
 from app.core.dependencies import require_role
+from app.core.audit import write_audit_log
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
@@ -35,11 +36,19 @@ def list_categories(db: Session = Depends(get_db)):
 def delete_category(
     category_id: int,
     db: Session = Depends(get_db),
-    _=Depends(require_role("admin")),
+    current=Depends(require_role("admin")),
 ):
     cat = db.query(Category).filter(Category.id == category_id).first()
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
+    write_audit_log(
+        db,
+        actor_email=current["email"],
+        action="category_deleted",
+        entity_type="category",
+        entity_id=str(cat.id),
+        details={"name": cat.name},
+    )
     db.delete(cat)
     db.commit()
     return {"message": "Category deleted"}

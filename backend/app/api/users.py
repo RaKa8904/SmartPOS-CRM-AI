@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, require_role
+from app.core.audit import write_audit_log
 from app.db.deps import get_db
 from app.models.user import User
 
@@ -64,7 +65,16 @@ def update_user_role(
     if current["email"] == target.email and role != "admin":
         raise HTTPException(status_code=400, detail="You cannot remove your own admin role")
 
+    old_role = target.role
     target.role = role
+    write_audit_log(
+        db,
+        actor_email=current["email"],
+        action="user_role_changed",
+        entity_type="user",
+        entity_id=str(target.id),
+        details={"target_email": target.email, "old_role": old_role, "new_role": role},
+    )
     db.commit()
     return {"message": "Role updated", "user_id": target.id, "role": target.role}
 

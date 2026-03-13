@@ -7,6 +7,7 @@ from app.models.customer import Customer
 from app.models.price_history import ProductPriceHistory
 from app.models.notification import Notification
 from app.models.user import User
+from app.models.audit_log import AuditLog
 from sqlalchemy import text
 
 
