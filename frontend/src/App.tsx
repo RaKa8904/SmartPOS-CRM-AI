@@ -12,6 +12,7 @@ import Notifications from "./pages/Notifications";
 import MLInsights from "./pages/MLInsights";
 import Users from "./pages/Users";
 import AuditLogs from "./pages/AuditLogs";
+import UserActivity from "./pages/UserActivity";
 
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -79,6 +80,14 @@ export default function App() {
           element={
             <RoleRoute allowedRoles={["admin", "manager"]}>
               <Pricing />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/user-activity"
+          element={
+            <RoleRoute allowedRoles={["admin"]}>
+              <UserActivity />
             </RoleRoute>
           }
         />

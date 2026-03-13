@@ -74,7 +74,28 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
     user = db.query(User).filter(User.email == email).first()
 
-    if not user or not verify_password(password, user.hashed_password):
+    if not user:
+        write_audit_log(
+            db,
+            actor_email=email,
+            action="login_failed",
+            entity_type="auth",
+            entity_id=None,
+            details={"reason": "email_not_found"},
+        )
+        db.commit()
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not verify_password(password, user.hashed_password):
+        write_audit_log(
+            db,
+            actor_email=email,
+            action="login_failed",
+            entity_type="auth",
+            entity_id=str(user.id),
+            details={"reason": "invalid_password"},
+        )
+        db.commit()
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     if not user.is_active:

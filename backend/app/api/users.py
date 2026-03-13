@@ -103,9 +103,22 @@ def update_user_status(
         if active_admins == 0:
             raise HTTPException(status_code=400, detail="Cannot disable the last active admin")
 
+    old_is_active = bool(target.is_active)
     target.is_active = payload.is_active
     if not payload.is_active:
         target.session_revoked = True
+    write_audit_log(
+        db,
+        actor_email=current["email"],
+        action="user_status_changed",
+        entity_type="user",
+        entity_id=str(target.id),
+        details={
+            "target_email": target.email,
+            "old_is_active": old_is_active,
+            "new_is_active": bool(payload.is_active),
+        },
+    )
     db.commit()
 
     return {"message": "Status updated", "user_id": target.id, "is_active": bool(target.is_active)}
@@ -116,6 +129,7 @@ def update_user_username(
     user_id: int,
     payload: UpdateUsernameRequest,
     db: Session = Depends(get_db),
+    current=Depends(get_current_user),
     _=Depends(require_role("admin")),
 ):
     target = db.query(User).filter(User.id == user_id).first()
@@ -128,7 +142,20 @@ def update_user_username(
     if len(new_name) > 80:
         raise HTTPException(status_code=400, detail="Username must be <= 80 characters")
 
+    old_username = target.username
     target.username = new_name
+    write_audit_log(
+        db,
+        actor_email=current["email"],
+        action="user_username_changed",
+        entity_type="user",
+        entity_id=str(target.id),
+        details={
+            "target_email": target.email,
+            "old_username": old_username,
+            "new_username": target.username,
+        },
+    )
     db.commit()
 
     return {"message": "Username updated", "user_id": target.id, "username": target.username}
@@ -138,6 +165,7 @@ def update_user_username(
 def revoke_user_session(
     user_id: int,
     db: Session = Depends(get_db),
+    current=Depends(get_current_user),
     _=Depends(require_role("admin")),
 ):
     target = db.query(User).filter(User.id == user_id).first()
@@ -145,6 +173,14 @@ def revoke_user_session(
         raise HTTPException(status_code=404, detail="User not found")
 
     target.session_revoked = True
+    write_audit_log(
+        db,
+        actor_email=current["email"],
+        action="user_session_revoked",
+        entity_type="user",
+        entity_id=str(target.id),
+        details={"target_email": target.email},
+    )
     db.commit()
 
     return {"message": "Session revoked", "user_id": target.id}
