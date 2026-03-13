@@ -10,6 +10,7 @@ const allNavItems: NavItem[] = [
   { name: "Categories",    path: "/categories",   roles: ["admin", "manager"] },
   { name: "Customers",     path: "/customers",    roles: ["admin", "manager", "cashier"] },
   { name: "Pricing",       path: "/pricing",      roles: ["admin", "manager"] },
+  { name: "Users",         path: "/users",        roles: ["admin"] },
   { name: "Notifications", path: "/notifications",roles: ["admin", "manager"] },
   { name: "ML Insights",   path: "/ml",           roles: ["admin", "manager"] },
 ];

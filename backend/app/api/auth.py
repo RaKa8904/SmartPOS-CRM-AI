@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import datetime, timezone
 
 from app.db.deps import get_db
 from app.models.user import User
@@ -51,6 +52,8 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
         email=email,
         hashed_password=hash_password(password),
         role=role,
+        is_active=True,
+        session_revoked=False,
     )
 
     db.add(user)
@@ -69,6 +72,13 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="User account is disabled")
+
+    user.last_login_at = datetime.now(timezone.utc)
+    user.session_revoked = False
+    db.commit()
 
     # Embed role in JWT so frontend and backend can enforce RBAC
     token = create_access_token({"sub": user.email, "role": user.role})

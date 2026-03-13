@@ -38,6 +38,11 @@ def _run_migrations():
         "ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS line_tax FLOAT DEFAULT 0.0",
         # RBAC role column
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'cashier'",
+        # User administration metadata
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS session_revoked BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ",
     ]
 
     with engine.connect() as conn:
