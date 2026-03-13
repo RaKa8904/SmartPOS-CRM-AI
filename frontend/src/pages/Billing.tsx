@@ -12,6 +12,7 @@ type Product = {
   sku: string;
   price: number;
   stock: number;
+  tax_rate: number;
 };
 
 type CartItem = {
@@ -109,12 +110,37 @@ export default function Billing() {
   const removeItem = (id: number) =>
     setCart((prev) => prev.filter((i) => i.product_id !== id));
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const estimatedTax = cart.reduce((s, i) => {
+    const product = products.find((p) => p.id === i.product_id);
+    const rate = product?.tax_rate ?? 0;
+    return s + (i.price * i.qty * rate) / 100;
+  }, 0);
+  const estimatedGrandTotal = subtotal + estimatedTax;
+
+  const estimatedChange =
+    paymentMethod === "cash" && amountTendered !== ""
+      ? Number(amountTendered) - estimatedGrandTotal
+      : null;
 
   const createInvoice = async () => {
     if (!customerId || cart.length === 0) {
       alert("Select customer and add items.");
       return;
+    }
+
+    if (paymentMethod === "cash") {
+      if (amountTendered === "") {
+        alert("Enter amount tendered for cash payment.");
+        return;
+      }
+
+      if (Number(amountTendered) < estimatedGrandTotal) {
+        alert(
+          `Amount tendered (Rs ${Number(amountTendered).toFixed(2)}) is less than payable total (Rs ${estimatedGrandTotal.toFixed(2)}).`
+        );
+        return;
+      }
     }
 
     try {
@@ -134,8 +160,9 @@ export default function Billing() {
       setInvoiceData(res.data);
       setCart([]);
       setAmountTendered("");
-    } catch {
-      alert("Failed to create invoice ❌");
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      alert(detail ? `Failed to create invoice: ${detail}` : "Failed to create invoice");
     }
   };
 
@@ -200,8 +227,10 @@ export default function Billing() {
             ))}
           </div>
 
-          <div className="text-lg font-bold text-indigo-400">
-            Total: ₹ {total}
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-sm space-y-1">
+            <p className="text-zinc-400">Subtotal: Rs {subtotal.toFixed(2)}</p>
+            <p className="text-zinc-400">Estimated GST: Rs {estimatedTax.toFixed(2)}</p>
+            <p className="text-indigo-400 font-bold">Payable Total: Rs {estimatedGrandTotal.toFixed(2)}</p>
           </div>
 
           {/* Payment Method */}
@@ -209,7 +238,12 @@ export default function Billing() {
             <select
               className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
+              onChange={(e) => {
+                setPaymentMethod(e.target.value);
+                if (e.target.value !== "cash") {
+                  setAmountTendered("");
+                }
+              }}
             >
               <option value="cash">💵 Cash</option>
               <option value="card">💳 Card</option>
@@ -220,13 +254,25 @@ export default function Billing() {
             {paymentMethod === "cash" && (
               <input
                 type="number"
-                placeholder="Amount tendered (₹)"
+                placeholder="Amount tendered (Rs)"
                 value={amountTendered}
                 onChange={(e) =>
                   setAmountTendered(e.target.value ? Number(e.target.value) : "")
                 }
                 className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
               />
+            )}
+
+            {paymentMethod === "cash" && estimatedChange !== null && (
+              <p
+                className={`text-xs ${
+                  estimatedChange >= 0 ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {estimatedChange >= 0
+                  ? `Estimated change: Rs ${estimatedChange.toFixed(2)}`
+                  : `Short by: Rs ${Math.abs(estimatedChange).toFixed(2)}`}
+              </p>
             )}
           </div>
 
