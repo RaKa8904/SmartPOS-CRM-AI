@@ -5,12 +5,16 @@ from app.db.deps import get_db
 from app.models.customer import Customer
 from app.models.invoice import Invoice
 from app.ml.customer_segmentation import segment_customers
+from app.core.dependencies import require_role
 
 router = APIRouter(prefix="/ml", tags=["ML"])
 
 
 @router.get("/customer-segments")
-def customer_segments(db: Session = Depends(get_db)):
+def customer_segments(
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     customers = db.query(Customer).all()
 
     rows = []

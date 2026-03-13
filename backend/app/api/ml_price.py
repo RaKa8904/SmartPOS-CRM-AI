@@ -5,11 +5,16 @@ from app.db.deps import get_db
 from app.models.product import Product
 from app.models.price_history import ProductPriceHistory
 from app.ml.price_prediction import predict_next_price
+from app.core.dependencies import require_role
 
 router = APIRouter(prefix="/ml", tags=["ML"])
 
 @router.get("/predict-price/{product_id}")
-def predict_price(product_id: int, db: Session = Depends(get_db)):
+def predict_price(
+    product_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")

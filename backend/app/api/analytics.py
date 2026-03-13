@@ -2,12 +2,16 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.deps import get_db
 from sqlalchemy import text
+from app.core.dependencies import require_role
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
 @router.get("/kpis")
-def get_kpis(db: Session = Depends(get_db)):
+def get_kpis(
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     total_revenue = db.execute(
         text("SELECT COALESCE(SUM(total_amount), 0) FROM invoices")
     ).scalar()
@@ -28,7 +32,10 @@ def get_kpis(db: Session = Depends(get_db)):
 
 
 @router.get("/revenue-trend")
-def revenue_trend(db: Session = Depends(get_db)):
+def revenue_trend(
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     rows = db.execute(
         text("""
             SELECT 
@@ -49,7 +56,10 @@ def revenue_trend(db: Session = Depends(get_db)):
     ]
 
 @router.get("/top-products")
-def top_products(db: Session = Depends(get_db)):
+def top_products(
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     rows = db.execute(
         text("""
             SELECT

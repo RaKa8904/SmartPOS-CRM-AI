@@ -5,11 +5,16 @@ from app.db.deps import get_db
 from app.models.invoice_item import InvoiceItem
 from app.models.product import Product
 from app.ml.recommendations import build_bought_together_rules, recommend_for_product
+from app.core.dependencies import require_role
 
 router = APIRouter(prefix="/ml", tags=["ML"])
 
 @router.get("/recommendations/{product_id}")
-def get_recommendations(product_id: int, db: Session = Depends(get_db)):
+def get_recommendations(
+    product_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")

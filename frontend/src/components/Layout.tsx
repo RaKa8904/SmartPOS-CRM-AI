@@ -1,19 +1,32 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
-const navItems = [
-  { name: "Dashboard", path: "/" },
-  { name: "Billing", path: "/billing" },
-  { name: "Products", path: "/products" },
-  { name: "Customers", path: "/customers" },
-  { name: "Pricing", path: "/pricing" },
-  { name: "Notifications", path: "/notifications" },
-  { name: "ML Insights", path: "/ml" },
+type NavItem = { name: string; path: string; roles: string[] };
+
+const allNavItems: NavItem[] = [
+  { name: "Dashboard",     path: "/",             roles: ["admin", "manager"] },
+  { name: "Billing",       path: "/billing",      roles: ["admin", "manager", "cashier"] },
+  { name: "Products",      path: "/products",     roles: ["admin", "manager"] },
+  { name: "Categories",    path: "/categories",   roles: ["admin", "manager"] },
+  { name: "Customers",     path: "/customers",    roles: ["admin", "manager", "cashier"] },
+  { name: "Pricing",       path: "/pricing",      roles: ["admin", "manager"] },
+  { name: "Notifications", path: "/notifications",roles: ["admin", "manager"] },
+  { name: "ML Insights",   path: "/ml",           roles: ["admin", "manager"] },
 ];
 
+const ROLE_COLORS: Record<string, string> = {
+  admin:   "text-red-400",
+  manager: "text-yellow-400",
+  cashier: "text-green-400",
+};
+
 export default function Layout() {
-  const { logout, user } = useAuth();
-  const navigate = useNavigate(); // ✅ REQUIRED
+  const { logout, user, role } = useAuth();
+  const navigate = useNavigate();
+
+  const navItems = allNavItems.filter(
+    (item) => !role || item.roles.includes(role)
+  );
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex">
@@ -46,6 +59,11 @@ export default function Layout() {
         <div className="mt-10 text-xs text-zinc-500">
           <p>Backend: 127.0.0.1:8000</p>
           <p>Frontend: localhost:5173</p>
+          {role && (
+            <p className={`mt-2 font-semibold capitalize ${ROLE_COLORS[role] ?? "text-zinc-400"}`}>
+              Role: {role}
+            </p>
+          )}
         </div>
       </aside>
 
@@ -63,10 +81,7 @@ export default function Layout() {
             )}
 
             <button
-              onClick={() => {
-                logout();          // ✅ clear auth
-                navigate("/login"); // ✅ redirect
-              }}
+              onClick={() => { logout(); navigate("/login"); }}
               className="bg-red-600/20 text-red-400 border border-red-600/30
                          px-3 py-1.5 rounded-lg text-xs font-medium
                          hover:bg-red-600/30 transition"
@@ -74,9 +89,6 @@ export default function Layout() {
               Logout
             </button>
 
-            <span className="text-xs text-zinc-400">
-              Phase 9 • Auth Polish 🔐
-            </span>
           </div>
         </header>
 

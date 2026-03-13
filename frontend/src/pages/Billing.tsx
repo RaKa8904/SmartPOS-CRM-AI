@@ -26,13 +26,18 @@ type InvoiceItem = {
   quantity: number;
   price: number;
   line_total: number;
+  line_tax: number;
 };
 
 type InvoiceResponse = {
   invoice_id: number;
   customer_name: string;
   items: InvoiceItem[];
+  subtotal: number;
+  tax_amount: number;
   total_amount: number;
+  payment_method: string;
+  change_due: number | null;
   message: string;
 };
 
@@ -44,6 +49,8 @@ export default function Billing() {
   const [loading, setLoading] = useState(true);
   const [invoiceData, setInvoiceData] = useState<InvoiceResponse | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [amountTendered, setAmountTendered] = useState<number | "">("");
 
   useEffect(() => {
     const load = async () => {
@@ -117,10 +124,16 @@ export default function Billing() {
           product_id: c.product_id,
           quantity: c.qty,
         })),
+        payment_method: paymentMethod,
+        amount_tendered:
+          paymentMethod === "cash" && amountTendered !== ""
+            ? Number(amountTendered)
+            : undefined,
       });
 
       setInvoiceData(res.data);
       setCart([]);
+      setAmountTendered("");
     } catch {
       alert("Failed to create invoice ❌");
     }
@@ -189,6 +202,32 @@ export default function Billing() {
 
           <div className="text-lg font-bold text-indigo-400">
             Total: ₹ {total}
+          </div>
+
+          {/* Payment Method */}
+          <div className="space-y-2">
+            <select
+              className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            >
+              <option value="cash">💵 Cash</option>
+              <option value="card">💳 Card</option>
+              <option value="upi">📱 UPI</option>
+              <option value="credit">🏦 Credit</option>
+            </select>
+
+            {paymentMethod === "cash" && (
+              <input
+                type="number"
+                placeholder="Amount tendered (₹)"
+                value={amountTendered}
+                onChange={(e) =>
+                  setAmountTendered(e.target.value ? Number(e.target.value) : "")
+                }
+                className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+              />
+            )}
           </div>
 
           <button
@@ -279,6 +318,23 @@ export default function Billing() {
 
             <div className="text-right text-lg font-bold mb-6">
               Total: ₹ {invoiceData.total_amount}
+            </div>
+
+            {/* GST Breakdown */}
+            <div className="text-right text-sm text-zinc-400 space-y-1 mb-3">
+              <p>Subtotal: ₹ {invoiceData.subtotal?.toFixed(2)}</p>
+              <p>GST: ₹ {invoiceData.tax_amount?.toFixed(2)}</p>
+              <p className="text-lg font-bold text-white">
+                Grand Total: ₹ {invoiceData.total_amount?.toFixed(2)}
+              </p>
+              <p className="capitalize text-zinc-400">
+                Payment: {invoiceData.payment_method}
+              </p>
+              {invoiceData.change_due != null && invoiceData.change_due > 0 && (
+                <p className="text-green-400 font-semibold">
+                  Change Due: ₹ {invoiceData.change_due.toFixed(2)}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 print:hidden">

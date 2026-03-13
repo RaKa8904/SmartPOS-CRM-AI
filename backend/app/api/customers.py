@@ -4,11 +4,16 @@ from sqlalchemy.orm import Session
 from app.db.deps import get_db
 from app.models.customer import Customer
 from app.schemas.customer import CustomerCreate, CustomerOut
+from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/customers", tags=["Customers"])
 
 @router.post("/add", response_model=CustomerOut)
-def add_customer(payload: CustomerCreate, db: Session = Depends(get_db)):
+def add_customer(
+    payload: CustomerCreate,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
     existing_phone = db.query(Customer).filter(Customer.phone == payload.phone).first()
     if existing_phone:
         raise HTTPException(status_code=400, detail="Phone already exists")
@@ -30,5 +35,5 @@ def add_customer(payload: CustomerCreate, db: Session = Depends(get_db)):
     return customer
 
 @router.get("/list", response_model=list[CustomerOut])
-def list_customers(db: Session = Depends(get_db)):
+def list_customers(db: Session = Depends(get_db), _=Depends(get_current_user)):
     return db.query(Customer).all()

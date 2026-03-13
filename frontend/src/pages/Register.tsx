@@ -8,12 +8,13 @@ export default function Register() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("cashier");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await register(email, password);
+      await register(email, password, role);
       navigate("/");
     } catch {
       alert("Registration failed ❌");
@@ -54,6 +55,19 @@ export default function Register() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+
+        {/* Role */}
+        <select
+          className="w-full mb-4 p-2.5 rounded-lg bg-zinc-800
+                     text-zinc-100 border border-zinc-700
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+        >
+          <option value="cashier">Cashier</option>
+          <option value="manager">Manager</option>
+          <option value="admin">Admin</option>
+        </select>
 
         {/* Button */}
         <button

@@ -4,13 +4,19 @@ from sqlalchemy.orm import Session
 from app.db.deps import get_db
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductOut
+from app.core.dependencies import require_role, get_current_user
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
 # ---------------- ADD PRODUCT ----------------
 @router.post("/add", response_model=ProductOut)
-def add_product(payload: ProductCreate, db: Session = Depends(get_db)):
+def add_product(
+    payload: ProductCreate,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
+    # Check only ACTIVE products for SKU conflict
     existing = db.query(Product).filter(
         Product.sku == payload.sku,
         Product.is_active == True
@@ -24,7 +30,9 @@ def add_product(payload: ProductCreate, db: Session = Depends(get_db)):
         sku=payload.sku,
         price=payload.price,
         stock=payload.stock,
-        is_active=True
+        tax_rate=payload.tax_rate,
+        category_id=payload.category_id,
+        is_active=True,
     )
 
     db.add(product)
@@ -35,13 +43,18 @@ def add_product(payload: ProductCreate, db: Session = Depends(get_db)):
 
 # ---------------- LIST PRODUCTS ----------------
 @router.get("/list", response_model=list[ProductOut])
-def list_products(db: Session = Depends(get_db)):
+def list_products(db: Session = Depends(get_db), _=Depends(get_current_user)):
     return db.query(Product).filter(Product.is_active == True).all()
 
 
 # ---------------- UPDATE PRODUCT ----------------
 @router.put("/update/{product_id}", response_model=ProductOut)
-def update_product(product_id: int, payload: ProductCreate, db: Session = Depends(get_db)):
+def update_product(
+    product_id: int,
+    payload: ProductCreate,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     product = db.query(Product).filter(
         Product.id == product_id,
         Product.is_active == True
@@ -54,6 +67,8 @@ def update_product(product_id: int, payload: ProductCreate, db: Session = Depend
     product.sku = payload.sku
     product.price = payload.price
     product.stock = payload.stock
+    product.tax_rate = payload.tax_rate
+    product.category_id = payload.category_id
 
     db.commit()
     db.refresh(product)
@@ -62,7 +77,11 @@ def update_product(product_id: int, payload: ProductCreate, db: Session = Depend
 
 # ---------------- SOFT DELETE PRODUCT ----------------
 @router.delete("/delete/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db)):
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     product = db.query(Product).filter(
         Product.id == product_id,
         Product.is_active == True
@@ -71,9 +90,8 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # 🔥 Soft Delete Instead of Hard Delete
+    # Soft delete instead of hard delete
     product.is_active = False
-
     db.commit()
 
     return {"message": "Product archived successfully"}
@@ -81,7 +99,12 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
 
 # ---------------- RESTOCK PRODUCT ----------------
 @router.put("/restock/{product_id}")
-def restock_product(product_id: int, payload: dict, db: Session = Depends(get_db)):
+def restock_product(
+    product_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     product = db.query(Product).filter(
         Product.id == product_id,
         Product.is_active == True

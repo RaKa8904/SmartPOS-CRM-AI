@@ -9,12 +9,17 @@ from app.models.customer import Customer
 from app.models.product import Product
 from app.api.price_drops import price_drop_for_product
 from app.core.email_sender import send_email
+from app.core.dependencies import require_role
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 
 @router.post("/generate/product/{product_id}")
-def generate_notifications(product_id: int, db: Session = Depends(get_db)):
+def generate_notifications(
+    product_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     # reuse price drop logic output
     result = price_drop_for_product(product_id, db)
 
@@ -73,13 +78,19 @@ def generate_notifications(product_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/list")
-def list_notifications(db: Session = Depends(get_db)):
+def list_notifications(
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     notifs = db.query(Notification).order_by(Notification.created_at.desc()).all()
     return notifs
 
 
 @router.post("/send/pending")
-def send_pending_notifications(db: Session = Depends(get_db)):
+def send_pending_notifications(
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     pending = db.query(Notification).filter(Notification.status == "PENDING").all()
 
     if len(pending) == 0:

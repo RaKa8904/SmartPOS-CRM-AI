@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from app.db.deps import get_db
 from app.models.product import Product
 from app.models.price_history import ProductPriceHistory
+from app.core.dependencies import require_role
 
 router = APIRouter(prefix="/pricing", tags=["Pricing"])
 
@@ -13,7 +14,11 @@ class UpdatePriceRequest(BaseModel):
     new_price: float
 
 @router.post("/update")
-def update_price(payload: UpdatePriceRequest, db: Session = Depends(get_db)):
+def update_price(
+    payload: UpdatePriceRequest,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "manager")),
+):
     product = db.query(Product).filter(Product.id == payload.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")

@@ -7,6 +7,13 @@ type Product = {
   sku: string;
   price: number;
   stock: number;
+  tax_rate: number;
+  category_id: number | null;
+};
+
+type Category = {
+  id: number;
+  name: string;
 };
 
 export default function Products() {
@@ -18,6 +25,9 @@ export default function Products() {
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [stock, setStock] = useState<number>(0);
+  const [taxRate, setTaxRate] = useState<number>(18);
+  const [categoryId, setCategoryId] = useState<number | "">("");
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const [restockMap, setRestockMap] = useState<Record<number, number>>({});
 
@@ -30,6 +40,8 @@ export default function Products() {
     const fetchProducts = async () => {
       try {
         await loadProducts();
+        const catRes = await api.get<Category[]>("/categories/list");
+        setCategories(catRes.data ?? []);
       } finally {
         setLoading(false);
       }
@@ -43,12 +55,21 @@ export default function Products() {
       return;
     }
 
-    await api.post("/products/add", { name, sku, price, stock });
+    await api.post("/products/add", {
+      name,
+      sku,
+      price,
+      stock,
+      tax_rate: taxRate,
+      category_id: categoryId || null,
+    });
 
     setName("");
     setSku("");
     setPrice(0);
     setStock(0);
+    setTaxRate(18);
+    setCategoryId("");
 
     loadProducts();
   };
@@ -80,7 +101,7 @@ export default function Products() {
     <div className="space-y-8">
 
       {/* ADD PRODUCT CARD */}
-      <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700 rounded-2xl p-6 shadow-xl">
+      <div className="bg-linear-to-br from-zinc-900 to-zinc-800 border border-zinc-700 rounded-2xl p-6 shadow-xl">
         <h2 className="text-lg font-semibold mb-4">Add New Product</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -111,6 +132,25 @@ export default function Products() {
             className="bg-zinc-950 border border-zinc-700 rounded-xl p-2"
           />
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <input
+            type="number"
+            placeholder="GST Rate % (e.g. 18)"
+            value={taxRate}
+            onChange={(e) => setTaxRate(Number(e.target.value))}
+            className="bg-zinc-950 border border-zinc-700 rounded-xl p-2"
+          />
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}
+            className="bg-zinc-950 border border-zinc-700 rounded-xl p-2 text-zinc-300"
+          >
+            <option value="">No Category</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
 
         <button
           onClick={addProduct}
@@ -129,7 +169,7 @@ export default function Products() {
       />
 
       {/* PRODUCT TABLE */}
-      <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-linear-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-2xl shadow-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-zinc-900/70 text-zinc-400">
             <tr>
@@ -137,6 +177,7 @@ export default function Products() {
               <th className="py-3 px-4 text-left">Name</th>
               <th className="py-3 px-4 text-left">SKU</th>
               <th className="py-3 px-4 text-right">Price</th>
+              <th className="py-3 px-4 text-right">GST%</th>
               <th className="py-3 px-4 text-right">Stock</th>
               <th className="py-3 px-4 text-center">Actions</th>
             </tr>
@@ -153,6 +194,9 @@ export default function Products() {
                 <td className="px-4 py-3 text-zinc-400">{p.sku}</td>
                 <td className="px-4 py-3 text-right text-indigo-400">
                   ₹ {p.price}
+                </td>
+                <td className="px-4 py-3 text-right text-zinc-400">
+                  {p.tax_rate}%
                 </td>
                 <td
                   className={`px-4 py-3 text-right font-semibold ${

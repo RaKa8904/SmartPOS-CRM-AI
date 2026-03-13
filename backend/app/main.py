@@ -10,6 +10,7 @@ from app.api.ml_customers import router as ml_customers_router
 from app.api.ml_recommendations import router as ml_recommendations_router
 from app.api.ml_price import router as ml_price_router
 from app.api.analytics import router as analytics_router
+from app.api.categories import router as categories_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.dependencies import get_current_user
 from app.api import auth
@@ -44,6 +45,7 @@ app.include_router(ml_recommendations_router)
 app.include_router(ml_price_router)
 app.include_router(analytics_router)
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(categories_router)
 
 
 @app.get("/secure-data")
