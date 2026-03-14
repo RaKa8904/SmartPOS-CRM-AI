@@ -14,6 +14,7 @@ from app.api.categories import router as categories_router
 from app.api.users import router as users_router
 from app.api.audit_logs import router as audit_logs_router
 from app.api.user_activity import router as user_activity_router
+from app.api.ml_advanced import router as ml_advanced_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.dependencies import get_current_user
 from app.api import auth
@@ -52,6 +53,7 @@ app.include_router(categories_router)
 app.include_router(users_router)
 app.include_router(audit_logs_router)
 app.include_router(user_activity_router)
+app.include_router(ml_advanced_router)
 
 
 @app.get("/secure-data")
