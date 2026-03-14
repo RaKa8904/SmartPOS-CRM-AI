@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../api";
+import { printInvoiceDocument } from "../utils/invoicePrint";
 
 type Customer = {
   id: number;
@@ -167,8 +169,102 @@ export default function Billing() {
   };
 
   const handlePrint = () => {
-    window.print();
+    if (!invoiceData) return;
+    printInvoiceDocument(invoiceData);
   };
+
+  useEffect(() => {
+    if (!invoiceData) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setInvoiceData(null);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [invoiceData]);
+
+  const invoiceModal = invoiceData ? (
+    <div
+      className="fixed inset-0 bg-black/70 flex items-center justify-center print:bg-white p-4"
+      style={{ zIndex: 9999 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setInvoiceData(null);
+        }
+      }}
+    >
+      <div className="glass-card print:bg-white print:text-black border border-[#33437f]/35 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-auto">
+
+        <h2 className="text-xl font-semibold mb-2">
+          Invoice #{invoiceData.invoice_id}
+        </h2>
+
+        <p className="mb-4">
+          Customer: {invoiceData.customer_name}
+        </p>
+
+        <table className="w-full text-sm border-collapse mb-4">
+          <thead>
+            <tr className="border-b border-zinc-700 print:border-black">
+              <th className="text-left py-2">Product</th>
+              <th className="text-center py-2">Qty</th>
+              <th className="text-right py-2">Price</th>
+              <th className="text-right py-2">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoiceData.items.map((item, index) => (
+              <tr key={index} className="border-b border-zinc-800 print:border-black">
+                <td className="py-2">{item.name}</td>
+                <td className="py-2 text-center">{item.quantity}</td>
+                <td className="py-2 text-right">₹ {item.price}</td>
+                <td className="py-2 text-right">₹ {item.line_total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="text-right text-lg font-bold mb-6">
+          Total: ₹ {invoiceData.total_amount}
+        </div>
+
+        <div className="text-right text-sm text-zinc-400 space-y-1 mb-3">
+          <p>Subtotal: ₹ {invoiceData.subtotal?.toFixed(2)}</p>
+          <p>GST: ₹ {invoiceData.tax_amount?.toFixed(2)}</p>
+          <p className="text-lg font-bold text-white">
+            Grand Total: ₹ {invoiceData.total_amount?.toFixed(2)}
+          </p>
+          <p className="capitalize text-zinc-400">
+            Payment: {invoiceData.payment_method}
+          </p>
+          {invoiceData.change_due != null && invoiceData.change_due > 0 && (
+            <p className="text-green-400 font-semibold">
+              Change Due: ₹ {invoiceData.change_due.toFixed(2)}
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-3 print:hidden">
+          <button
+            onClick={handlePrint}
+            className="px-4 py-2 bg-green-600 rounded"
+          >
+            Print
+          </button>
+          <button
+            onClick={() => setInvoiceData(null)}
+            className="px-4 py-2 bg-indigo-600 rounded"
+          >
+            Close
+          </button>
+        </div>
+
+      </div>
+    </div>
+  ) : null;
 
   if (loading) return <p className="text-zinc-400">Loading...</p>;
 
@@ -339,80 +435,8 @@ export default function Billing() {
         </div>
       </div>
 
-      {/* INVOICE MODAL */}
-      {invoiceData && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 print:bg-white">
-          <div className="glass-card print:bg-white print:text-black border border-[#33437f]/35 rounded-2xl p-6 w-full max-w-2xl">
-
-            <h2 className="text-xl font-semibold mb-2">
-              Invoice #{invoiceData.invoice_id}
-            </h2>
-
-            <p className="mb-4">
-              Customer: {invoiceData.customer_name}
-            </p>
-
-            {/* ITEM LIST RESTORED */}
-            <table className="w-full text-sm border-collapse mb-4">
-              <thead>
-                <tr className="border-b border-zinc-700 print:border-black">
-                  <th className="text-left py-2">Product</th>
-                  <th className="text-center py-2">Qty</th>
-                  <th className="text-right py-2">Price</th>
-                  <th className="text-right py-2">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoiceData.items.map((item, index) => (
-                  <tr key={index} className="border-b border-zinc-800 print:border-black">
-                    <td className="py-2">{item.name}</td>
-                    <td className="py-2 text-center">{item.quantity}</td>
-                    <td className="py-2 text-right">₹ {item.price}</td>
-                    <td className="py-2 text-right">₹ {item.line_total}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className="text-right text-lg font-bold mb-6">
-              Total: ₹ {invoiceData.total_amount}
-            </div>
-
-            {/* GST Breakdown */}
-            <div className="text-right text-sm text-zinc-400 space-y-1 mb-3">
-              <p>Subtotal: ₹ {invoiceData.subtotal?.toFixed(2)}</p>
-              <p>GST: ₹ {invoiceData.tax_amount?.toFixed(2)}</p>
-              <p className="text-lg font-bold text-white">
-                Grand Total: ₹ {invoiceData.total_amount?.toFixed(2)}
-              </p>
-              <p className="capitalize text-zinc-400">
-                Payment: {invoiceData.payment_method}
-              </p>
-              {invoiceData.change_due != null && invoiceData.change_due > 0 && (
-                <p className="text-green-400 font-semibold">
-                  Change Due: ₹ {invoiceData.change_due.toFixed(2)}
-                </p>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-3 print:hidden">
-              <button
-                onClick={handlePrint}
-                className="px-4 py-2 bg-green-600 rounded"
-              >
-                Print
-              </button>
-              <button
-                onClick={() => setInvoiceData(null)}
-                className="px-4 py-2 bg-indigo-600 rounded"
-              >
-                Close
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
+      {typeof document !== "undefined" &&
+        createPortal(invoiceModal, document.body)}
     </>
   );
 }

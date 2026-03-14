@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../api";
+import { printInvoiceDocument } from "../utils/invoicePrint";
 
 type Customer = {
   id: number;
@@ -19,7 +21,12 @@ type InvoiceDetail = {
   invoice_id: number;
   customer_name: string;
   items: InvoiceItem[];
+  subtotal?: number;
+  tax_amount?: number;
   total_amount: number;
+  payment_method?: string;
+  change_due?: number | null;
+  created_at?: string;
 };
 
 type InvoiceHistoryItem = {
@@ -96,6 +103,24 @@ export default function Customers() {
     setPhone("");
     fetchCustomers();
   };
+
+  const handlePrintInvoice = () => {
+    if (!selectedInvoice) return;
+    printInvoiceDocument(selectedInvoice);
+  };
+
+  useEffect(() => {
+    if (!selectedInvoice) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedInvoice(null);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedInvoice]);
 
   useEffect(() => {
     fetchCustomers();
@@ -209,55 +234,85 @@ export default function Customers() {
       </div>
 
       {/* INVOICE MODAL */}
-      {selectedInvoice && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="glass-card border border-[#33437f]/35 rounded-2xl p-6 max-w-2xl w-full shadow-2xl">
+      {typeof document !== "undefined" &&
+        createPortal(
+          selectedInvoice ? (
+            <div
+              className="fixed inset-0 bg-black/70 flex items-center justify-center p-4"
+              style={{ zIndex: 9999 }}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setSelectedInvoice(null);
+                }
+              }}
+            >
+              <div className="glass-card border border-[#33437f]/35 rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-auto">
 
-            <h2 className="text-xl font-semibold text-cyan-200 mb-4">
-              Invoice #{selectedInvoice.invoice_id}
-            </h2>
+                <h2 className="text-xl font-semibold text-cyan-200 mb-4">
+                  Invoice #{selectedInvoice.invoice_id}
+                </h2>
 
-            <p className="mb-4 text-slate-300/80">
-              Customer: <span className="text-white">{selectedInvoice.customer_name}</span>
-            </p>
+                <p className="mb-4 text-slate-300/80">
+                  Customer: <span className="text-white">{selectedInvoice.customer_name}</span>
+                </p>
 
-            <table className="w-full text-sm rounded-xl overflow-hidden">
-              <thead>
-                <tr className="border-b border-[#33437f]/35 text-slate-300/85">
-                  <th className="text-left py-2">Product</th>
-                  <th className="text-center py-2">Qty</th>
-                  <th className="text-right py-2">Price</th>
-                  <th className="text-right py-2">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedInvoice.items.map((item, i) => (
-                  <tr key={i} className="border-b border-[#33437f]/22">
-                    <td className="py-2">{item.name}</td>
-                    <td className="py-2 text-center">{item.quantity}</td>
-                    <td className="py-2 text-right">₹ {item.price}</td>
-                    <td className="py-2 text-right">₹ {item.line_total}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                <table className="w-full text-sm rounded-xl overflow-hidden">
+                  <thead>
+                    <tr className="border-b border-[#33437f]/35 text-slate-300/85">
+                      <th className="text-left py-2">Product</th>
+                      <th className="text-center py-2">Qty</th>
+                      <th className="text-right py-2">Price</th>
+                      <th className="text-right py-2">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedInvoice.items.map((item, i) => (
+                      <tr key={i} className="border-b border-[#33437f]/22">
+                        <td className="py-2">{item.name}</td>
+                        <td className="py-2 text-center">{item.quantity}</td>
+                        <td className="py-2 text-right">₹ {item.price}</td>
+                        <td className="py-2 text-right">₹ {item.line_total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
 
-            <div className="mt-4 text-right text-lg font-bold">
-              Total: ₹ {selectedInvoice.total_amount}
+                <div className="mt-4 text-right text-sm text-slate-300/85 space-y-1">
+                  <p>Subtotal: ₹ {(selectedInvoice.subtotal ?? selectedInvoice.total_amount).toFixed(2)}</p>
+                  <p>GST: ₹ {(selectedInvoice.tax_amount ?? 0).toFixed(2)}</p>
+                  <p className="text-lg font-bold text-white">
+                    Grand Total: ₹ {selectedInvoice.total_amount.toFixed(2)}
+                  </p>
+                  {selectedInvoice.payment_method && (
+                    <p className="capitalize">Payment: {selectedInvoice.payment_method}</p>
+                  )}
+                  {selectedInvoice.change_due != null && selectedInvoice.change_due > 0 && (
+                    <p className="text-green-400 font-semibold">
+                      Change Due: ₹ {selectedInvoice.change_due.toFixed(2)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-6 text-right flex justify-end gap-3">
+                  <button
+                    onClick={handlePrintInvoice}
+                    className="px-4 py-2 bg-green-600 rounded"
+                  >
+                    Print
+                  </button>
+                  <button
+                    onClick={() => setSelectedInvoice(null)}
+                    className="btn-primary px-4 py-2"
+                  >
+                    Close
+                  </button>
+                </div>
+
+              </div>
             </div>
-
-            <div className="mt-6 text-right">
-              <button
-                onClick={() => setSelectedInvoice(null)}
-                className="btn-primary px-4 py-2"
-              >
-                Close
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
+          ) : null,
+          document.body
+        )}
     </>
   );
 }

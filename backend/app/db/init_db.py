@@ -5,7 +5,7 @@ from app.models.invoice import Invoice
 from app.models.invoice_item import InvoiceItem
 from app.models.customer import Customer
 from app.models.price_history import ProductPriceHistory
-from app.models.notification import Notification
+from app.models.notification import Notification, NotificationTemplate, NotificationCampaign
 from app.models.user import User
 from app.models.audit_log import AuditLog
 from sqlalchemy import text
@@ -45,6 +45,17 @@ def _run_migrations():
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS session_revoked BOOLEAN DEFAULT FALSE",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ",
+        # Notification templates and campaign history
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS campaign_id INTEGER REFERENCES notification_campaigns(id)",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS template_id INTEGER REFERENCES notification_templates(id)",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS channel VARCHAR(20) DEFAULT 'EMAIL'",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS phone VARCHAR(20)",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS subject VARCHAR(255)",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS provider_message_id VARCHAR(255)",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS error_message VARCHAR(500)",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS last_attempt_at TIMESTAMPTZ",
+        "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ",
     ]
 
     with engine.connect() as conn:
