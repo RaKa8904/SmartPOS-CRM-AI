@@ -140,6 +140,33 @@ Create a backend environment file at `backend/.env`:
 DATABASE_URL=postgresql+psycopg2://postgres:<your-password>@localhost:5432/smart_pos_crm_ai
 ```
 
+Optional notification configuration:
+
+```env
+# SMTP (for email notifications)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-app-password
+
+# SMS mode: mock, generic, or twilio
+SMS_PROVIDER=mock
+
+# mock mode: no external SMS provider required (logs to backend console)
+
+# Twilio settings
+TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_FROM_NUMBER=+1XXXXXXXXXX
+
+# Generic SMS settings (if SMS_PROVIDER=generic)
+# SMS_PROVIDER_URL=https://your-sms-provider/send
+# SMS_API_KEY=your-api-key
+# SMS_SENDER_ID=SmartPOS
+```
+
+You can also copy defaults from `backend/.env.example`.
+
 ## Backend setup
 
 ```bash
@@ -237,16 +264,16 @@ npm run build
 
 ## Role access model
 
-| Area | Admin | Manager | Cashier |
-|------|-------|---------|---------|
-| Dashboard | Yes | Yes | No |
-| Billing | Yes | Yes | Yes |
-| Products | Yes | Yes | No |
-| Categories | Yes | Yes | No |
-| Customers | Yes | Yes | Yes |
-| Pricing | Yes | Yes | No |
-| Notifications | Yes | Yes | No |
-| ML Insights | Yes | Yes | No |
+| Area          | Admin | Manager | Cashier |
+| ------------- | ----- | ------- | ------- |
+| Dashboard     | Yes   | Yes     | No      |
+| Billing       | Yes   | Yes     | Yes     |
+| Products      | Yes   | Yes     | No      |
+| Categories    | Yes   | Yes     | No      |
+| Customers     | Yes   | Yes     | Yes     |
+| Pricing       | Yes   | Yes     | No      |
+| Notifications | Yes   | Yes     | No      |
+| ML Insights   | Yes   | Yes     | No      |
 
 ## Important implementation notes
 
