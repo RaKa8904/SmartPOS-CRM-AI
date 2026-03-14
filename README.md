@@ -143,6 +143,17 @@ DATABASE_URL=postgresql+psycopg2://postgres:<your-password>@localhost:5432/smart
 Optional notification configuration:
 
 ```env
+# Auth security
+JWT_SECRET_KEY=change-me-access-secret
+JWT_REFRESH_SECRET_KEY=change-me-refresh-secret
+ACCESS_TOKEN_EXPIRE_MINUTES=20
+REFRESH_TOKEN_EXPIRE_DAYS=7
+MAX_FAILED_LOGIN_ATTEMPTS=5
+ACCOUNT_LOCK_MINUTES=15
+INVITE_EXPIRE_HOURS=48
+PASSWORD_RESET_EXPIRE_MINUTES=30
+FRONTEND_URL=http://localhost:5173
+
 # SMTP (for email notifications)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587

@@ -5,7 +5,7 @@ export type AuthContextType = {
   email: string | null;
   role: string | null;        // "admin" | "manager" | "cashier"
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, username: string, password: string, role?: string) => Promise<void>;
+  register: (email: string, username: string, password: string, inviteToken?: string) => Promise<void>;
   logout: () => void;
 };
 

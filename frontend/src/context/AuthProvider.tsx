@@ -59,20 +59,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     const res = await api.post("/auth/login", { email, password });
     const token = res.data.access_token;
+    const refreshToken = res.data.refresh_token as string | undefined;
     localStorage.setItem("access_token", token);
+    if (refreshToken) {
+      localStorage.setItem("refresh_token", refreshToken);
+    }
     const payload = decodeToken(token);
     setUser(asString(payload?.name as string | number | undefined) ?? (res.data.username as string | undefined) ?? email);
     setEmail(asString(payload?.sub as string | number | undefined) ?? email);
     setRole((payload?.role as string | undefined) ?? res.data.role ?? "cashier");
   };
 
-  const register = async (email: string, username: string, password: string, roleArg?: string) => {
-    await api.post("/auth/register", { email, username, password, role: roleArg });
+  const register = async (email: string, username: string, password: string, inviteToken?: string) => {
+    await api.post("/auth/register", { email, username, password, invite_token: inviteToken });
     await login(email, password);
   };
 
   const logout = () => {
     localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     setUser(null);
     setEmail(null);
     setRole(null);

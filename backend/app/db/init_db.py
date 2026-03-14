@@ -7,6 +7,7 @@ from app.models.customer import Customer
 from app.models.price_history import ProductPriceHistory
 from app.models.notification import Notification, NotificationTemplate, NotificationCampaign
 from app.models.user import User
+from app.models.auth_security import UserInvite, PasswordResetToken
 from app.models.audit_log import AuditLog
 from sqlalchemy import text
 
@@ -45,6 +46,9 @@ def _run_migrations():
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS session_revoked BOOLEAN DEFAULT FALSE",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 0",
         # Notification templates and campaign history
         "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS campaign_id INTEGER REFERENCES notification_campaigns(id)",
         "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS template_id INTEGER REFERENCES notification_templates(id)",

@@ -1,9 +1,9 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
+from jose import JWTError
 from sqlalchemy.orm import Session
 
-from app.core.jwt import SECRET_KEY, ALGORITHM
+from app.core.jwt import decode_access_token
 from app.db.deps import get_db
 from app.models.user import User
 
@@ -16,9 +16,14 @@ def get_current_user(
 ):
     """Return dict {email, role} from a valid JWT."""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = decode_access_token(token)
         email: str | None = payload.get("sub")
         role: str = payload.get("role", "cashier")
+        token_type: str = payload.get("typ", "")
+        token_version: int = int(payload.get("ver", 0))
+
+        if token_type != "access":
+            raise HTTPException(status_code=401, detail="Invalid token type")
         if email is None:
             raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -29,6 +34,8 @@ def get_current_user(
             raise HTTPException(status_code=403, detail="User account is disabled")
         if user.session_revoked:
             raise HTTPException(status_code=401, detail="Session revoked. Please login again")
+        if token_version != int(user.token_version or 0):
+            raise HTTPException(status_code=401, detail="Session expired. Please login again")
 
         return {"email": email, "role": role}
     except JWTError:

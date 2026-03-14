@@ -40,6 +40,8 @@ def list_users(
             "created_at": u.created_at.isoformat() if u.created_at else None,
             "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None,
             "session_revoked": bool(u.session_revoked),
+            "failed_login_attempts": int(u.failed_login_attempts or 0),
+            "locked_until": u.locked_until.isoformat() if u.locked_until else None,
         }
         for u in users
     ]
@@ -107,6 +109,7 @@ def update_user_status(
     target.is_active = payload.is_active
     if not payload.is_active:
         target.session_revoked = True
+        target.token_version = int(target.token_version or 0) + 1
     write_audit_log(
         db,
         actor_email=current["email"],
@@ -173,6 +176,7 @@ def revoke_user_session(
         raise HTTPException(status_code=404, detail="User not found")
 
     target.session_revoked = True
+    target.token_version = int(target.token_version or 0) + 1
     write_audit_log(
         db,
         actor_email=current["email"],

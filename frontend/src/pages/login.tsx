@@ -1,14 +1,21 @@
 import { useState } from "react";
 import { useAuth } from "../context/useAuth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { api } from "../api";
+import type { AxiosError } from "axios";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [resetMode, setResetMode] = useState(Boolean(searchParams.get("reset_token")));
+  const [resetEmail, setResetEmail] = useState(searchParams.get("email") ?? "");
+  const [resetToken, setResetToken] = useState(searchParams.get("reset_token") ?? "");
+  const [resetPassword, setResetPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -16,10 +23,43 @@ export default function Login() {
       setLoading(true);
       await login(email, password);
       navigate("/");
-    } catch {
-      alert("Invalid credentials ❌");
+    } catch (err: unknown) {
+      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data?.detail;
+      alert((detail ?? "Invalid credentials") + " ❌");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const requestPasswordReset = async () => {
+    if (!resetEmail.trim()) {
+      alert("Enter email first");
+      return;
+    }
+    try {
+      await api.post("/auth/password-reset/request", { email: resetEmail.trim() });
+      alert("If the email exists, reset instructions were sent.");
+    } catch {
+      alert("Unable to request password reset");
+    }
+  };
+
+  const confirmPasswordReset = async () => {
+    if (!resetToken.trim() || !resetPassword.trim()) {
+      alert("Enter reset token and new password");
+      return;
+    }
+    try {
+      await api.post("/auth/password-reset/confirm", {
+        token: resetToken.trim(),
+        new_password: resetPassword,
+      });
+      alert("Password reset successful. You can login now.");
+      setResetMode(false);
+      setResetToken("");
+      setResetPassword("");
+    } catch {
+      alert("Invalid or expired reset token");
     }
   };
 
@@ -33,6 +73,37 @@ export default function Login() {
         <p className="text-sm text-slate-300/75 mb-6">
           Login to continue to SmartPOS
         </p>
+
+        {resetMode && (
+          <div className="mb-4 rounded-xl border border-cyan-300/25 bg-cyan-400/8 p-3 space-y-2">
+            <p className="text-xs text-cyan-100 font-semibold">Password Reset</p>
+            <input
+              className="input-surface"
+              placeholder="Email"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+            />
+            <button onClick={requestPasswordReset} className="input-surface py-2 text-sm">
+              Request Reset Token
+            </button>
+            <input
+              className="input-surface"
+              placeholder="Reset Token"
+              value={resetToken}
+              onChange={(e) => setResetToken(e.target.value)}
+            />
+            <input
+              type="password"
+              className="input-surface"
+              placeholder="New Password"
+              value={resetPassword}
+              onChange={(e) => setResetPassword(e.target.value)}
+            />
+            <button onClick={confirmPasswordReset} className="btn-primary w-full py-2">
+              Confirm Password Reset
+            </button>
+          </div>
+        )}
 
         {/* Email */}
         <input
@@ -81,6 +152,14 @@ export default function Login() {
           className="btn-primary w-full py-2.5"
         >
           {loading ? "Logging in..." : "Login"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setResetMode((v) => !v)}
+          className="w-full mt-3 text-xs text-cyan-200 hover:text-cyan-100"
+        >
+          {resetMode ? "Back to login" : "Forgot password?"}
         </button>
 
         {/* Register link */}

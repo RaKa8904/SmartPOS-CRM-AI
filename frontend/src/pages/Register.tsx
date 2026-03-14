@@ -1,25 +1,28 @@
 import { useState } from "react";
 import { useAuth } from "../context/useAuth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import type { AxiosError } from "axios";
 
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [inviteToken, setInviteToken] = useState(searchParams.get("invite") ?? "");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState("cashier");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await register(email, username, password, role);
+      await register(email, username, password, inviteToken || undefined);
       navigate("/");
-    } catch {
-      alert("Registration failed ❌");
+    } catch (err: unknown) {
+      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data?.detail;
+      alert((detail ?? "Registration failed") + " ❌");
     } finally {
       setLoading(false);
     }
@@ -33,7 +36,7 @@ export default function Register() {
           Create account
         </h2>
         <p className="text-sm text-slate-300/75 mb-6">
-          Start using SmartPOS today
+          Join SmartPOS with your admin invite token
         </p>
 
         {/* Email */}
@@ -83,16 +86,12 @@ export default function Register() {
           </button>
         </div>
 
-        {/* Role */}
-        <select
+        <input
           className="input-surface mb-5"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        >
-          <option value="cashier">Cashier</option>
-          <option value="manager">Manager</option>
-          <option value="admin">Admin</option>
-        </select>
+          placeholder="Invite Token"
+          value={inviteToken}
+          onChange={(e) => setInviteToken(e.target.value)}
+        />
 
         {/* Button */}
         <button

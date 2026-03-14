@@ -12,6 +12,17 @@ type UserRow = {
   created_at: string | null;
   last_login_at: string | null;
   session_revoked: boolean;
+  failed_login_attempts: number;
+  locked_until: string | null;
+};
+
+type InviteResponse = {
+  message: string;
+  email: string;
+  role: "admin" | "manager" | "cashier";
+  invite_token: string;
+  register_link: string;
+  expires_at: string;
 };
 
 const ROLE_OPTIONS: Array<UserRow["role"]> = ["admin", "manager", "cashier"];
@@ -37,6 +48,10 @@ export default function Users() {
   const [roleFilter, setRoleFilter] = useState<"all" | UserRow["role"]>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "disabled">("all");
   const [nameDraft, setNameDraft] = useState<Record<number, string>>({});
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<UserRow["role"]>("cashier");
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [lastInvite, setLastInvite] = useState<InviteResponse | null>(null);
 
   const loadUsers = async () => {
     const res = await api.get<UserRow[]>("/users/list");
@@ -127,6 +142,27 @@ export default function Users() {
     }
   };
 
+  const createInvite = async () => {
+    if (!inviteEmail.trim()) {
+      alert("Invite email is required");
+      return;
+    }
+
+    setInviteBusy(true);
+    try {
+      const res = await api.post<InviteResponse>("/auth/invite", {
+        email: inviteEmail.trim().toLowerCase(),
+        role: inviteRole,
+      });
+      setLastInvite(res.data);
+      setInviteEmail("");
+    } catch (err: unknown) {
+      alert(errorDetail(err, "Failed to create invite"));
+    } finally {
+      setInviteBusy(false);
+    }
+  };
+
   if (loading) return <p className="text-zinc-400">Loading users...</p>;
 
   return (
@@ -167,6 +203,48 @@ export default function Users() {
               <option value="disabled">Disabled</option>
             </select>
           </div>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-cyan-300/20 bg-cyan-300/6 p-4">
+          <p className="text-sm font-semibold text-cyan-100 mb-3">Invite-Only User Onboarding</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <input
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="new.user@company.com"
+              className="input-surface md:col-span-2"
+            />
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as UserRow["role"])}
+              className="input-surface"
+            >
+              <option value="cashier">cashier</option>
+              <option value="manager">manager</option>
+              <option value="admin">admin</option>
+            </select>
+            <button
+              onClick={createInvite}
+              disabled={inviteBusy}
+              className="btn-primary py-2 disabled:opacity-40"
+            >
+              {inviteBusy ? "Creating..." : "Create Invite"}
+            </button>
+          </div>
+
+          {lastInvite && (
+            <div className="mt-3 text-xs text-slate-200/90 space-y-1">
+              <p>
+                Invite created for {lastInvite.email} ({lastInvite.role}) | Expires: {fmtDate(lastInvite.expires_at)}
+              </p>
+              <p className="break-all">
+                Token: <span className="text-cyan-200">{lastInvite.invite_token}</span>
+              </p>
+              <p className="break-all">
+                Link: <span className="text-cyan-200">{lastInvite.register_link}</span>
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -235,6 +313,16 @@ export default function Users() {
                       >
                         {row.is_active ? "Active" : "Disabled"}
                       </span>
+                      {row.locked_until && (
+                        <p className="mt-1 text-[11px] text-amber-300">
+                          Locked until: {fmtDate(row.locked_until)}
+                        </p>
+                      )}
+                      {row.failed_login_attempts > 0 && (
+                        <p className="text-[11px] text-slate-300/80">
+                          Failed attempts: {row.failed_login_attempts}
+                        </p>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-slate-300">{fmtDate(row.created_at)}</td>
                     <td className="py-3 px-4 text-slate-300">{fmtDate(row.last_login_at)}</td>
