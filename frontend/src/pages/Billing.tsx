@@ -54,6 +54,7 @@ export default function Billing() {
   const [searchTerm, setSearchTerm] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [amountTendered, setAmountTendered] = useState<number | "">("");
+  const [stockNotice, setStockNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -81,7 +82,28 @@ export default function Billing() {
       p.id.toString().includes(searchTerm)
   );
 
+  const getCartQtyForProduct = (productId: number) => {
+    const cartItem = cart.find((item) => item.product_id === productId);
+    return cartItem ? cartItem.qty : 0;
+  };
+
+  // Live stock = current product stock minus qty reserved in cart.
+  const getLiveStock = (productId: number) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return 0;
+    return Math.max(product.stock - getCartQtyForProduct(productId), 0);
+  };
+
+  const showStockNotice = (productName: string) => {
+    setStockNotice(`Insufficient stock for '${productName}'`);
+  };
+
   const addToCart = (p: Product) => {
+    if (getLiveStock(p.id) <= 0) {
+      showStockNotice(p.name);
+      return;
+    }
+
     setCart((prev) => {
       const found = prev.find((x) => x.product_id === p.id);
       if (found) {
@@ -93,12 +115,21 @@ export default function Billing() {
     });
   };
 
-  const increaseQty = (id: number) =>
+  const increaseQty = (id: number) => {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+
+    if (getLiveStock(id) <= 0) {
+      showStockNotice(product.name);
+      return;
+    }
+
     setCart((prev) =>
       prev.map((i) =>
         i.product_id === id ? { ...i, qty: i.qty + 1 } : i
       )
     );
+  };
 
   const decreaseQty = (id: number) =>
     setCart((prev) =>
@@ -160,6 +191,14 @@ export default function Billing() {
       });
 
       setInvoiceData(res.data);
+      // Reflect committed stock deduction in UI immediately.
+      setProducts((prev) =>
+        prev.map((p) => {
+          const cartItem = cart.find((c) => c.product_id === p.id);
+          if (!cartItem) return p;
+          return { ...p, stock: Math.max(p.stock - cartItem.qty, 0) };
+        })
+      );
       setCart([]);
       setAmountTendered("");
     } catch (error: any) {
@@ -185,6 +224,14 @@ export default function Billing() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [invoiceData]);
+
+  useEffect(() => {
+    if (!stockNotice) return;
+    const timer = window.setTimeout(() => {
+      setStockNotice(null);
+    }, 2500);
+    return () => window.clearTimeout(timer);
+  }, [stockNotice]);
 
   const invoiceModal = invoiceData ? (
     <div
@@ -411,20 +458,21 @@ export default function Billing() {
                     <td className="px-3 py-2.5 text-center">
                       <span
                         className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                          p.stock <= 10
+                          getLiveStock(p.id) <= 10
                             ? "bg-rose-500/20 text-rose-200"
                             : "bg-emerald-500/20 text-emerald-200"
                         }`}
                       >
-                        {p.stock}
+                        {getLiveStock(p.id)}
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-center">
                       <button
                         onClick={() => addToCart(p)}
-                        className="btn-primary px-3 py-1 text-xs"
+                        disabled={getLiveStock(p.id) <= 0}
+                        className="btn-primary px-3 py-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Add
+                        {getLiveStock(p.id) <= 0 ? "Out" : "Add"}
                       </button>
                     </td>
                   </tr>
@@ -437,6 +485,35 @@ export default function Billing() {
 
       {typeof document !== "undefined" &&
         createPortal(invoiceModal, document.body)}
+
+      {stockNotice && (
+        <div className="fixed top-5 right-5 z-10000 w-88 max-w-[calc(100vw-2rem)] rounded-2xl border border-rose-400/30 bg-[#1a0f26]/95 text-rose-100 shadow-2xl backdrop-blur-md p-4 fade-in">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 h-7 w-7 shrink-0 rounded-full bg-rose-500/25 border border-rose-300/30 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 9v4" />
+                <path d="M12 17h.01" />
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs uppercase tracking-[0.14em] text-rose-200/80">Stock Alert</p>
+              <p className="text-sm mt-1">{stockNotice}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStockNotice(null)}
+              className="text-rose-200/80 hover:text-rose-100 transition"
+              aria-label="Close stock alert"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18" />
+                <path d="M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
