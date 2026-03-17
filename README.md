@@ -317,11 +317,28 @@ Key backend route groups:
 
 ## Roadmap ideas
 
-- barcode-scanner integration
+A full competitive analysis and uniqueness assessment of this project is available in [COMPARISON.md](./COMPARISON.md).
+
+### High impact (differentiating features)
+
+- dynamic discount engine triggered by ML churn or demand signals
+- natural language analytics query interface (`/analytics/ask`)
+- automated reorder alerts generated from demand forecasts
+- loyalty points system integrated with ML LTV tiers
+
+### Medium impact (closing gaps with commercial POS systems)
+
 - returns and refunds workflow
-- discount and coupon engine
-- audit logs and admin controls
-- containerized deployment and CI/CD
+- barcode-scanner integration (scanners emulate keyboard input; no external library needed)
+- invoice PDF export with store branding
+- multi-store / multi-branch support
+
+### Low impact (polish and developer experience)
+
+- WebSocket real-time dashboard updates
+- Progressive Web App (PWA) support for tablet installation
+- containerized deployment with Docker Compose (backend already has a Dockerfile)
+- accounting software export (CSV / Tally XML)
 
 ## Author
 
