@@ -1,12 +1,15 @@
 import hashlib
 import os
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
+
+from app.core.limiter import limiter
 
 from app.db.deps import get_db
 from app.models.user import User
@@ -70,6 +73,15 @@ def _hash_token(raw_token: str) -> str:
     return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
 
 
+def _validate_password_strength(password: str):
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one uppercase letter")
+    if not re.search(r"[0-9]", password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one number")
+
+
 # =========================
 # Routes
 # =========================
@@ -80,8 +92,10 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     username = (payload.username or "").strip()
     password = payload.password
 
+    _validate_password_strength(password)
+
     if db.query(User).filter(User.email == email).first():
-        raise HTTPException(status_code=400, detail="Email already exists")
+        raise HTTPException(status_code=400, detail="Registration failed. Check your invite token and details.")
 
     # First user ever registered becomes admin automatically
     is_first_user = db.query(User).count() == 0
@@ -143,7 +157,8 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
     email = payload.email.lower()
     password = payload.password
 

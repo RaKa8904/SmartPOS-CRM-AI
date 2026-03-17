@@ -26,3 +26,44 @@ cashier performance reports
 product sales reports
 CSV / Excel export
 printable invoice and analytics reports
+
+Security Hardening (Remaining)
+The following security improvements are pending implementation:
+
+[HIGH] JWT in HttpOnly Cookies instead of localStorage
+	- Store access/refresh tokens in HttpOnly + Secure + SameSite=Strict cookies set by the backend
+	- Scripts cannot read HttpOnly cookies at all, eliminating XSS token theft
+	- Requires refactoring AuthContext.tsx, api.ts axios interceptor, and all /auth backend routes
+
+[MEDIUM] Disable OpenAPI docs (/docs, /redoc) in production
+	- Pass docs_url=None, redoc_url=None to FastAPI() when ENV=production
+	- Prevents exposing the full API schema as a free hacking guide to attackers
+
+[MEDIUM] Refresh token rotation
+	- Invalidate the old refresh token on every /auth/refresh call and issue a new one
+	- Store refresh tokens hashed in DB (similar to PasswordResetToken model)
+	- If old token is reused after rotation, treat it as theft and revoke all sessions for that user
+
+[MEDIUM] Restrict CORS methods and headers for production
+	- Change allow_methods=["*"] to ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+	- Change allow_headers=["*"] to ["Content-Type", "Authorization"]
+	- Replace localhost allow_origins with actual production domain
+
+[MEDIUM] Request body size limit
+	- Add a MaxBodySizeMiddleware (1MB cap) to prevent DoS via giant payloads
+	- Reject requests where Content-Length exceeds limit with HTTP 413
+
+[MEDIUM] Run Docker container as non-root user
+	- Add: RUN adduser --disabled-password --gecos "" appuser
+	- Add: USER appuser near end of backend/Dockerfile
+	- Limits blast radius if a container breakout vulnerability is exploited
+
+[LOW] Automated dependency CVE scanning
+	- Backend: pip install pip-audit && pip-audit -r requirements.txt
+	- Frontend: npm audit
+	- Add to CI pipeline to catch known vulnerabilities in pinned packages
+
+[LOW] Log injection hardening
+	- Strip \n and \r from user-supplied fields before writing to audit log
+	- In app/core/audit.py: actor_email = actor_email.replace("\n", "").replace("\r", "")
+	- Prevents attackers from forging fake audit log entries

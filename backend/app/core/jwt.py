@@ -1,9 +1,19 @@
 import os
+import sys
 from datetime import datetime, timedelta
 
 from jose import jwt
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-secret-key-change-later")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    print(
+        "FATAL: JWT_SECRET_KEY environment variable is not set. "
+        "Generate one with: python -c \"import secrets; print(secrets.token_hex(64))\" "
+        "and add it to your .env file.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY", SECRET_KEY)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "20"))
