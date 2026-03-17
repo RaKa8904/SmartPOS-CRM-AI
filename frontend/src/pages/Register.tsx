@@ -15,6 +15,13 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const handleRegisterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleSubmit();
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -45,6 +52,7 @@ export default function Register() {
           placeholder="Full name / Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          onKeyDown={handleRegisterKeyDown}
         />
 
         <input
@@ -52,6 +60,7 @@ export default function Register() {
           placeholder="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleRegisterKeyDown}
         />
 
         {/* Password */}
@@ -62,6 +71,7 @@ export default function Register() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={handleRegisterKeyDown}
           />
           <button
             type="button"
@@ -91,6 +101,7 @@ export default function Register() {
           placeholder="Invite Token"
           value={inviteToken}
           onChange={(e) => setInviteToken(e.target.value)}
+          onKeyDown={handleRegisterKeyDown}
         />
 
         {/* Button */}

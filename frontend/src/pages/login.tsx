@@ -18,6 +18,13 @@ export default function Login() {
   const [resetPassword, setResetPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleLoginKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleSubmit();
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -111,6 +118,7 @@ export default function Login() {
           placeholder="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleLoginKeyDown}
         />
 
         {/* Password */}
@@ -121,6 +129,7 @@ export default function Login() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={handleLoginKeyDown}
           />
           <button
             type="button"

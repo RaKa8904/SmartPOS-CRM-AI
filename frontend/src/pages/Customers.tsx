@@ -420,9 +420,40 @@ export default function Customers() {
                           <p className="text-slate-100 font-medium truncate">{c.name}</p>
                           <p className="text-xs text-slate-300/60 mt-1">Customer ID: {c.id}</p>
                         </div>
-                        <span className="text-[11px] px-2 py-1 rounded-full border border-[#33437f]/35 bg-[#121a40]/70 text-cyan-200/80 shrink-0">
-                          View
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditCustomer(c);
+                            }}
+                            className="h-8 w-8 rounded-lg border border-cyan-400/25 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/18 transition flex items-center justify-center"
+                            aria-label={`Edit ${c.name}`}
+                            title="Edit customer"
+                          >
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                              <path d="M4 20h4l10-10a2.5 2.5 0 10-4-4L4 16v4z" />
+                              <path d="M13.5 6.5l4 4" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteCustomer(c);
+                            }}
+                            className="h-8 w-8 rounded-lg border border-rose-400/25 bg-rose-500/10 text-rose-200 hover:bg-rose-500/18 transition flex items-center justify-center"
+                            aria-label={`Delete ${c.name}`}
+                            title="Delete customer"
+                          >
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                              <path d="M3 6h18" />
+                              <path d="M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2" />
+                              <path d="M19 6l-1 14a1 1 0 01-1 1H7a1 1 0 01-1-1L5 6" />
+                              <path d="M10 11v6M14 11v6" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex flex-wrap gap-2 mt-3">
@@ -492,20 +523,6 @@ export default function Customers() {
                         <span className="text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-400/20">
                           ID #{selectedCustomer.id}
                         </span>
-                      </div>
-                      <div className="flex gap-2 mt-4">
-                        <button
-                          onClick={() => openEditCustomer(selectedCustomer)}
-                          className="text-xs px-3 py-1.5 rounded-full border border-cyan-400/25 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/15 transition"
-                        >
-                          Edit Customer
-                        </button>
-                        <button
-                          onClick={() => deleteCustomer(selectedCustomer)}
-                          className="text-xs px-3 py-1.5 rounded-full border border-rose-400/25 bg-rose-500/10 text-rose-200 hover:bg-rose-500/15 transition"
-                        >
-                          Delete Customer
-                        </button>
                       </div>
                     </div>
 
