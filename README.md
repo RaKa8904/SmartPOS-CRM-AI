@@ -1,45 +1,21 @@
 # SmartPOS CRM AI
 
-SmartPOS CRM AI is a full-stack retail operations platform that combines point-of-sale workflows, customer relationship management, pricing controls, and machine learning-assisted insights in a single application.
+SmartPOS CRM AI is a full-stack retail operations platform that combines POS billing, CRM workflows, pricing intelligence, notifications, analytics, and machine learning in one system.
 
-The project is designed for local development and product demonstration. It includes a FastAPI backend, a React + Vite frontend, PostgreSQL persistence, role-based access control, and seeded demo data for analytics and ML features.
+It is built for practical business usage and local deployment demos with role-based access, secure authentication, and seeded analytics-ready data.
 
-## What the platform covers
+## Highlights
 
-- POS billing with GST/tax-aware invoices and payment handling
-- Product catalog and category management
-- Customer management with invoice history
-- Dynamic pricing workflows and price-drop eligibility tracking
-- Notification workflows for eligible customers after price changes
-- Dashboard analytics for revenue, products, and customers
-- ML-assisted customer segmentation, recommendations, and price prediction
-- Role-based access for admin, manager, and cashier users
+- POS billing with GST/tax-aware invoice generation
+- Real-time stock-aware cart controls in billing
+- Product and category management with GST rates
+- Customer profiles, invoice history, edit/delete actions, and spending charts
+- Dynamic pricing center with audit trail, bulk update, schedule support, and customer impact tracking
+- Notification campaigns for price-drop eligible customers
+- Dashboard analytics and ML insights for customer and product behavior
+- Security hardening with stricter JWT handling, login rate limiting, and secure headers
 
-## Core capabilities
-
-### Operations
-
-- Create and manage products, stock, GST rates, and categories
-- Generate invoices with subtotal, tax, total amount, amount tendered, and change due
-- Track customer purchase history and invoice-level detail
-- Update product pricing and identify customers affected by price drops
-
-### Analytics and ML
-
-- Revenue KPI and revenue trend endpoints
-- Top-product analytics from invoice data
-- K-means based customer segmentation using spend, purchase frequency, and average order value
-- Product recommendations based on bought-together invoice patterns
-- Price prediction using historical product price changes
-
-### Access control
-
-- JWT-based authentication
-- First registered user is promoted to `admin`
-- Supported roles: `admin`, `manager`, `cashier`
-- Frontend navigation and backend APIs enforce role access
-
-## Tech stack
+## Tech Stack
 
 ### Frontend
 
@@ -58,8 +34,9 @@ The project is designed for local development and product demonstration. It incl
 - Pydantic
 - Passlib
 - python-jose
+- slowapi
 
-### Machine learning
+### ML Libraries
 
 - pandas
 - scikit-learn
@@ -68,32 +45,32 @@ The project is designed for local development and product demonstration. It incl
 ## Architecture
 
 ```text
-frontend (React + Vite)
-	|
-	| HTTP / JWT
-	v
-backend (FastAPI)
-	|
-	| SQLAlchemy
-	v
+Frontend (React + Vite)
+        |
+        | HTTP + JWT
+        v
+Backend (FastAPI)
+        |
+        | SQLAlchemy ORM
+        v
 PostgreSQL
 
-ML modules run inside the backend and operate on live transactional data.
+ML modules run in backend services over transactional data.
 ```
 
-## Repository structure
+## Repository Structure
 
 ```text
 .
 ├── backend/
 │   ├── app/
-│   │   ├── api/              # FastAPI route modules
-│   │   ├── core/             # auth, JWT, security, dependencies
-│   │   ├── db/               # database config, init, seed
-│   │   ├── ml/               # segmentation, pricing, recommendations
-│   │   ├── models/           # SQLAlchemy models
-│   │   ├── schemas/          # request/response schemas
-│   │   └── main.py           # FastAPI application entry point
+│   │   ├── api/           # FastAPI route modules
+│   │   ├── core/          # auth, jwt, security, dependencies, limiter
+│   │   ├── db/            # database config/init/seed
+│   │   ├── ml/            # ML services
+│   │   ├── models/        # SQLAlchemy models
+│   │   ├── schemas/       # Pydantic schemas
+│   │   └── main.py        # FastAPI app
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
@@ -101,7 +78,7 @@ ML modules run inside the backend and operate on live transactional data.
 │   │   ├── components/
 │   │   ├── context/
 │   │   ├── pages/
-│   │   └── services/
+│   │   └── utils/
 │   ├── package.json
 │   └── vite.config.ts
 ├── run_backend.bat
@@ -110,7 +87,116 @@ ML modules run inside the backend and operate on live transactional data.
 └── README.md
 ```
 
-## Local setup
+## Key Features
+
+### 1) Billing and POS
+
+- Create GST-compliant invoices with subtotal, tax, and grand total
+- Payment handling: cash, card, UPI, credit
+- Cash amount tendered and automatic change due validation
+- Cart quantity controls with live totals
+- Real-time inventory-safe billing behavior:
+  - Stock visibly decreases/increases live with cart quantity changes
+  - Add/quantity-increase is blocked when stock is exhausted
+  - Insufficient stock is shown with custom in-app alert (no browser default alert)
+
+### 2) Product and Category Management
+
+- Product CRUD-style operations and restocking
+- GST tax rate per product
+- Category assignment and category management
+- Soft-delete strategy on products
+
+### 3) Customer Management
+
+- Customer list with search and richer profile panel
+- Add customer workflow
+- Edit and delete customer actions in customer cards
+- Customer invoice history with invoice modal and print support
+- Spending analytics charts on customer page
+
+### 4) Pricing Center
+
+- Single-product price update
+- Price-drop impact lookup (eligible customers)
+- In-page customer notification trigger for price-drop campaigns
+- Price history endpoint + chart support
+- Bulk price update (flat or percentage)
+- Scheduled price changes with cancel support
+- Scheduled processor endpoint for due changes
+- Price change audit trail endpoint and UI tab
+- Product search selector and stock indicators in pricing flow
+
+### 5) Notifications
+
+- Template and campaign workflows
+- Product-linked campaign generation
+- Email/SMS channel support hooks
+- Campaign send, retry, and status tracking
+
+### 6) Dashboard and Analytics
+
+- KPI cards
+- Revenue and invoice trends
+- Product/customer performance metrics
+- Operational visuals and business snapshots
+
+### 7) ML Insights
+
+- Customer Segmentation
+- Churn Risk Prediction
+- Customer Lifetime Value
+- Product Recommendations
+- Price Trend Prediction
+- Demand Forecasting
+- Anomaly Detection
+
+Recent UX additions in ML Insights:
+
+- Search for Segments, Churn, LTV, and Demand lists
+- Searchable product selection for Recommendations and Price Trend panels
+- Clickable LTV tier rank cards to filter customers by tier
+
+## Authentication, Authorization, and Security
+
+### Auth and RBAC
+
+- JWT access and refresh token model
+- Role-based access: admin, manager, cashier
+- Invite-token registration for non-first users
+- Account lockout after failed login attempts
+- Session revocation and token version enforcement
+
+### Security Hardening Implemented
+
+- Removed hardcoded JWT secret fallback
+- Startup fails fast when `JWT_SECRET_KEY` is missing
+- Login route rate limited using slowapi (`10/minute` per IP)
+- Security headers middleware enabled:
+  - `X-Content-Type-Options: nosniff`
+  - `X-Frame-Options: DENY`
+  - `X-XSS-Protection: 1; mode=block`
+  - `Referrer-Policy: strict-origin-when-cross-origin`
+  - `Permissions-Policy: geolocation=(), microphone=()`
+  - `Strict-Transport-Security`
+- Registration response hardened to reduce email enumeration
+- Password strength validation added (minimum length, uppercase, number)
+
+## Role Access Matrix
+
+| Area | Admin | Manager | Cashier |
+| --- | --- | --- | --- |
+| Dashboard | Yes | Yes | No |
+| Billing | Yes | Yes | Yes |
+| Products | Yes | Yes | No |
+| Categories | Yes | Yes | No |
+| Customers | Yes | Yes | Yes |
+| Pricing | Yes | Yes | No |
+| Notifications | Yes | Yes | No |
+| ML Insights | Yes | Yes | No |
+| Users / Audit / User Activity | Admin only | No | No |
+
+## Local Setup
 
 ### Prerequisites
 
@@ -119,33 +205,22 @@ ML modules run inside the backend and operate on live transactional data.
 - PostgreSQL 14+
 - Git
 
-### 1. Clone the repository
+### 1) Clone
 
 ```bash
 git clone https://github.com/RaKa8904/SmartPOS-CRM-AI.git
 cd SmartPOS-CRM-AI
 ```
 
-### 2. Configure the database
+### 2) Configure Backend Environment
 
-Create a PostgreSQL database:
-
-```sql
-CREATE DATABASE smart_pos_crm_ai;
-```
-
-Create a backend environment file at `backend/.env`:
+Create `backend/.env`:
 
 ```env
-DATABASE_URL=postgresql+psycopg2://postgres:<your-password>@localhost:5432/smart_pos_crm_ai
-```
+DATABASE_URL=postgresql+psycopg2://postgres:<password>@localhost:5432/smart_pos_crm_ai
 
-Optional notification configuration:
-
-```env
-# Auth security
-JWT_SECRET_KEY=change-me-access-secret
-JWT_REFRESH_SECRET_KEY=change-me-refresh-secret
+JWT_SECRET_KEY=<generate-a-strong-secret>
+JWT_REFRESH_SECRET_KEY=<generate-a-strong-secret>
 ACCESS_TOKEN_EXPIRE_MINUTES=20
 REFRESH_TOKEN_EXPIRE_DAYS=7
 MAX_FAILED_LOGIN_ATTEMPTS=5
@@ -154,31 +229,20 @@ INVITE_EXPIRE_HOURS=48
 PASSWORD_RESET_EXPIRE_MINUTES=30
 FRONTEND_URL=http://localhost:5173
 
-# SMTP (for email notifications)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@example.com
 SMTP_PASS=your-app-password
-
-# SMS mode: mock, generic, or twilio
 SMS_PROVIDER=mock
-
-# mock mode: no external SMS provider required (logs to backend console)
-
-# Twilio settings
-TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_FROM_NUMBER=+1XXXXXXXXXX
-
-# Generic SMS settings (if SMS_PROVIDER=generic)
-# SMS_PROVIDER_URL=https://your-sms-provider/send
-# SMS_API_KEY=your-api-key
-# SMS_SENDER_ID=SmartPOS
 ```
 
-You can also copy defaults from `backend/.env.example`.
+Generate secrets:
 
-## Backend setup
+```bash
+python -c "import secrets; print(secrets.token_hex(64))"
+```
+
+### 3) Run Backend
 
 ```bash
 cd backend
@@ -188,12 +252,7 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Backend endpoints:
-
-- API root: `http://127.0.0.1:8000/`
-- Swagger UI: `http://127.0.0.1:8000/docs`
-
-## Frontend setup
+### 4) Run Frontend
 
 ```bash
 cd frontend
@@ -201,128 +260,61 @@ npm install
 npm run dev
 ```
 
-Frontend URL:
+App URLs:
 
-- App: `http://localhost:5173`
+- Frontend: `http://localhost:5173`
+- Backend: `http://127.0.0.1:8000`
+- Swagger: `http://127.0.0.1:8000/docs`
 
-## Demo data
+## Demo Data Seeding
 
-The repository includes a reset-and-seed utility for loading realistic SmartPOS demo data used by analytics and ML features.
-
-Current seed profile:
-
-- 10 categories
-- 36 products
-- 25 customers
-- 63 invoices
-- historical price changes for selected products
-- invoice patterns designed to produce meaningful customer segments and price-drop eligibility
-
-Run the seed utility:
+Use the provided reset-and-seed utility:
 
 ```bash
 cd backend
 venv\Scripts\python.exe -m app.db.reset_seed_demo
 ```
 
-This script clears business data tables and reseeds categories, products, customers, invoices, invoice items, and price history while keeping registered users intact.
+This reseeds business entities (categories, products, customers, invoices, invoice items, price history) while preserving registered users.
 
-## Build and validation
+## Build and Validation
 
-Frontend production build:
+### Frontend production build
 
 ```bash
 cd frontend
 npm run build
 ```
 
-## Main application areas
+## API Route Groups (High Level)
 
-### Dashboard
+- `/auth` authentication and session flows
+- `/products` product operations
+- `/categories` category operations
+- `/billing` invoice creation and retrieval
+- `/customers` customer CRUD and history
+- `/pricing` pricing controls, bulk/scheduled/audit
+- `/price-drops` customer eligibility checks
+- `/notifications` templates, campaigns, send/retry
+- `/analytics` dashboard metrics
+- `/ml` segmentation/churn/ltv/recommendations/forecast/anomalies
+- `/users`, `/audit-logs`, `/user-activity` admin modules
 
-- KPI cards for revenue, customers, and products
-- revenue trend visualization
-- top-product analytics
+## Production Notes
 
-### Billing
+Before production, strongly consider:
 
-- create invoices from product catalog
-- GST-aware total calculation
-- cash handling with amount tendered and change due
+- HTTPS termination and secure reverse proxy configuration
+- HttpOnly cookie token strategy (instead of localStorage token storage)
+- Refresh token rotation with token replay detection
+- Strict CORS for production domains
+- Dependency CVE scanning in CI
+- Non-root runtime for containers
 
-### Products and categories
+## License
 
-- create, list, delete, and restock products
-- assign products to categories
-- manage GST rates and stock levels
-
-### Customers
-
-- browse customer records
-- inspect invoice history by customer
-
-### Pricing and notifications
-
-- update product pricing
-- identify customers who previously paid more than the current price
-- prepare notification workflows for price-drop communication
-
-### ML insights
-
-- customer segmentation with K-means clustering
-- next-product recommendations from invoice co-purchase history
-- price prediction based on product price history
-
-## Role access model
-
-| Area          | Admin | Manager | Cashier |
-| ------------- | ----- | ------- | ------- |
-| Dashboard     | Yes   | Yes     | No      |
-| Billing       | Yes   | Yes     | Yes     |
-| Products      | Yes   | Yes     | No      |
-| Categories    | Yes   | Yes     | No      |
-| Customers     | Yes   | Yes     | Yes     |
-| Pricing       | Yes   | Yes     | No      |
-| Notifications | Yes   | Yes     | No      |
-| ML Insights   | Yes   | Yes     | No      |
-
-## Important implementation notes
-
-- The backend expects `DATABASE_URL` in `backend/.env`
-- CORS is configured for local Vite development on ports `5173` and `5174`
-- The application is currently optimized for local development and demo usage
-- Before production use, secrets and operational settings should be externalized and hardened
-
-## API surface overview
-
-Key backend route groups:
-
-- `/auth` - registration and login
-- `/products` - product management and restocking
-- `/billing` - invoice creation and billing flows
-- `/customers` - customer management
-- `/customer-history` - customer invoice history
-- `/categories` - category management
-- `/pricing` - price updates
-- `/price-drops` - eligible customer discovery after price changes
-- `/notifications` - notification workflow endpoints
-- `/analytics` - KPI and reporting endpoints
-- `/ml` - segmentation, recommendations, and price prediction
-
-## Known limitations
-
-- The repository is development-focused and not yet production-hardened
-- JWT secret management should be moved fully to environment configuration before deployment
-- The current setup assumes a locally running PostgreSQL instance
-
-## Roadmap ideas
-
-- barcode-scanner integration
-- returns and refunds workflow
-- discount and coupon engine
-- audit logs and admin controls
-- containerized deployment and CI/CD
+This project is distributed under the terms in [LICENSE](LICENSE).
 
 ## Author
 
-Developed by RaKa as a full-stack Smart POS + CRM + AI project for demonstration, learning, and portfolio use.
+Built by RaKa as a full-stack Smart POS + CRM + AI platform for practical deployment and portfolio demonstration.

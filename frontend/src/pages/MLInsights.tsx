@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
 import {
   AreaChart,
@@ -144,6 +144,99 @@ function MLTable({ headers, children }: TableProps) {
   );
 }
 
+type ProductSearchSelectProps = {
+  products: Product[];
+  value: number | "";
+  onChange: (id: number | "") => void;
+  searchTerm: string;
+  onSearchTermChange: (v: string) => void;
+  placeholder?: string;
+};
+
+function ProductSearchSelect({
+  products,
+  value,
+  onChange,
+  searchTerm,
+  onSearchTermChange,
+  placeholder = "Search product...",
+}: ProductSearchSelectProps) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onMouseDown = (event: MouseEvent) => {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  const selected = products.find((p) => p.id === value);
+
+  return (
+    <div ref={wrapRef} className="relative mt-1 mb-4">
+      <button
+        type="button"
+        className="input-surface text-left flex items-center justify-between"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className={selected ? "text-slate-100" : "text-slate-400"}>
+          {selected ? selected.name : "— Select a product —"}
+        </span>
+        <span className="text-slate-400">▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-30 mt-2 w-full rounded-xl border border-[#33437f]/45 bg-[#0d1635] shadow-2xl p-2">
+          <input
+            className="input-surface mb-2"
+            placeholder={placeholder}
+            value={searchTerm}
+            onChange={(e) => onSearchTermChange(e.target.value)}
+            autoFocus
+          />
+          <div className="max-h-56 overflow-y-auto rounded-lg border border-[#33437f]/30 bg-[#0c1536]/70">
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-[#1a2a5e]/60 transition"
+            >
+              — Select a product —
+            </button>
+            {products.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  onChange(p.id);
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 text-sm transition ${
+                  value === p.id
+                    ? "bg-cyan-500/20 text-cyan-200"
+                    : "text-slate-200 hover:bg-[#1a2a5e]/60"
+                }`}
+              >
+                {p.name}
+              </button>
+            ))}
+            {products.length === 0 && (
+              <p className="px-3 py-2 text-sm text-zinc-500">No matching products.</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════ COMPONENT ═══════════════════════ */
 
 export default function MLInsights() {
@@ -166,6 +259,7 @@ export default function MLInsights() {
   const [ltvData, setLtvData] = useState<LTVResponse | null>(null);
   const [loadingLtv, setLoadingLtv] = useState(false);
   const [ltvSearch, setLtvSearch] = useState("");
+  const [ltvTierFilter, setLtvTierFilter] = useState<"All" | "Platinum" | "Gold" | "Silver" | "Bronze">("All");
 
   /* --- Recommendations --- */
   const [selectedRecId, setSelectedRecId] = useState<number | "">("");
@@ -265,14 +359,17 @@ export default function MLInsights() {
   const filteredLtv = useMemo(() => {
     const list = ltvData?.customers ?? [];
     const q = ltvSearch.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((c) =>
+    const tierFiltered = ltvTierFilter === "All"
+      ? list
+      : list.filter((c) => c.ltv_tier === ltvTierFilter);
+    if (!q) return tierFiltered;
+    return tierFiltered.filter((c) =>
       [c.name, c.phone ?? "", c.ltv_tier, String(c.customer_id)]
         .join(" ")
         .toLowerCase()
         .includes(q)
     );
-  }, [ltvData, ltvSearch]);
+  }, [ltvData, ltvSearch, ltvTierFilter]);
 
   const filteredRecProducts = useMemo(() => {
     const q = recProductSearch.trim().toLowerCase();
@@ -454,11 +551,30 @@ export default function MLInsights() {
         <>
           {/* Tier summary + total */}
           <div className="flex flex-wrap gap-3 mb-4">
+            <button
+              type="button"
+              onClick={() => setLtvTierFilter("All")}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition ${
+                ltvTierFilter === "All"
+                  ? "text-cyan-200 bg-cyan-500/15 border-cyan-400/35"
+                  : "text-slate-300 bg-[#0d1635]/45 border-[#33437f]/35 hover:bg-[#1a2a5e]/45"
+              }`}
+            >
+              <span className="font-bold text-lg">{ltvData.customers.length}</span>
+              <span>All</span>
+            </button>
             {(["Platinum", "Gold", "Silver", "Bronze"] as const).map((t) => (
-              <div key={t} className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${LTV_COLORS[t]}`}>
+              <button
+                key={t}
+                type="button"
+                onClick={() => setLtvTierFilter(t)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition ${LTV_COLORS[t]} ${
+                  ltvTierFilter === t ? "ring-1 ring-cyan-300/70" : "opacity-80 hover:opacity-100"
+                }`}
+              >
                 <span className="font-bold text-lg">{ltvData.tier_summary[t] ?? 0}</span>
                 <span>{t}</span>
-              </div>
+              </button>
             ))}
             <div className="ml-auto flex items-center gap-1 text-sm text-slate-300 border border-[#33437f]/40 rounded-xl px-3 py-2 bg-[#0d1635]/40">
               <span className="text-xs text-zinc-400">Total predicted revenue</span>
@@ -492,20 +608,14 @@ export default function MLInsights() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Recommendations */}
       <SectionCard title="Product Recommendations" subtitle="Association rules scored by lift (higher = stronger pairing)">
-        <input
-          className="input-surface mt-1 mb-2"
-          placeholder="Search product by name, SKU, or ID..."
-          value={recProductSearch}
-          onChange={(e) => setRecProductSearch(e.target.value)}
-        />
-        <select
-          className="input-surface mt-1 mb-4"
+        <ProductSearchSelect
+          products={filteredRecProducts}
           value={selectedRecId}
-          onChange={(e) => setSelectedRecId(e.target.value ? Number(e.target.value) : "")}
-        >
-          <option value="">— Select a product —</option>
-          {filteredRecProducts.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
+          onChange={setSelectedRecId}
+          searchTerm={recProductSearch}
+          onSearchTermChange={setRecProductSearch}
+          placeholder="Search inside dropdown (name, SKU, ID)..."
+        />
         {loadingRec ? <p className="text-zinc-400">Loading…</p> :
           !recData ? <p className="text-zinc-500 text-sm">Select a product above.</p> :
           (recData.recommendations ?? []).length === 0 ? <p className="text-zinc-500 text-sm">Not enough purchase data yet.</p> : (
@@ -536,20 +646,14 @@ export default function MLInsights() {
 
       {/* Price Prediction */}
       <SectionCard title="Price Trend Prediction" subtitle="Linear regression on price history to forecast next price">
-        <input
-          className="input-surface mt-1 mb-2"
-          placeholder="Search product by name, SKU, or ID..."
-          value={predProductSearch}
-          onChange={(e) => setPredProductSearch(e.target.value)}
-        />
-        <select
-          className="input-surface mt-1 mb-4"
+        <ProductSearchSelect
+          products={filteredPredProducts}
           value={selectedPredId}
-          onChange={(e) => setSelectedPredId(e.target.value ? Number(e.target.value) : "")}
-        >
-          <option value="">— Select a product —</option>
-          {filteredPredProducts.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
+          onChange={setSelectedPredId}
+          searchTerm={predProductSearch}
+          onSearchTermChange={setPredProductSearch}
+          placeholder="Search inside dropdown (name, SKU, ID)..."
+        />
         {loadingPred ? <p className="text-zinc-400">Predicting…</p> :
           !predData ? <p className="text-zinc-500 text-sm">Select a product above.</p> :
           typeof predData.predicted_next_price === "number" ? (
