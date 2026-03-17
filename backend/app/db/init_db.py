@@ -4,7 +4,7 @@ from app.models.product import Product
 from app.models.invoice import Invoice
 from app.models.invoice_item import InvoiceItem
 from app.models.customer import Customer
-from app.models.price_history import ProductPriceHistory
+from app.models.price_history import ProductPriceHistory, ScheduledPriceChange  # noqa: F401
 from app.models.notification import Notification, NotificationTemplate, NotificationCampaign
 from app.models.user import User
 from app.models.auth_security import UserInvite, PasswordResetToken

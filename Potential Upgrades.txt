@@ -1,0 +1,28 @@
+Billing Enhancements
+To make billing feel more industry-ready:
+discounts and coupon codes
+returns / refunds
+partial payments
+invoice reprint / PDF export
+barcode scanner support
+saved carts / suspended billing
+These upgrades matter directly to day-to-day retail usage.
+
+CRM Upgrades
+Your customer module can become much stronger with:
+loyalty points
+customer tiers
+birthday / campaign targeting
+lifetime value panel
+repeat purchase frequency
+customer notes and tags
+This would complement the ML features well.
+
+Reporting and Export
+A professional business app usually needs:
+date-range reports
+GST/tax summaries
+cashier performance reports
+product sales reports
+CSV / Excel export
+printable invoice and analytics reports
