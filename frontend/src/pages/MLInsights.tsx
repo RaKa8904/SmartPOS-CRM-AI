@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import {
   AreaChart,
@@ -155,29 +155,35 @@ export default function MLInsights() {
   /* --- Customer Segments --- */
   const [segments, setSegments] = useState<CustomerSegment[]>([]);
   const [loadingSegments, setLoadingSegments] = useState(false);
+  const [segmentSearch, setSegmentSearch] = useState("");
 
   /* --- Churn Risk --- */
   const [churnData, setChurnData] = useState<ChurnCustomer[]>([]);
   const [loadingChurn, setLoadingChurn] = useState(false);
+  const [churnSearch, setChurnSearch] = useState("");
 
   /* --- LTV --- */
   const [ltvData, setLtvData] = useState<LTVResponse | null>(null);
   const [loadingLtv, setLoadingLtv] = useState(false);
+  const [ltvSearch, setLtvSearch] = useState("");
 
   /* --- Recommendations --- */
   const [selectedRecId, setSelectedRecId] = useState<number | "">("");
   const [recData, setRecData] = useState<RecResponse | null>(null);
   const [loadingRec, setLoadingRec] = useState(false);
+  const [recProductSearch, setRecProductSearch] = useState("");
 
   /* --- Price Prediction --- */
   const [selectedPredId, setSelectedPredId] = useState<number | "">("");
   const [predData, setPredData] = useState<PredPrice | null>(null);
   const [loadingPred, setLoadingPred] = useState(false);
+  const [predProductSearch, setPredProductSearch] = useState("");
 
   /* --- Demand Forecast --- */
   const [demandData, setDemandData] = useState<DemandResponse | null>(null);
   const [loadingDemand, setLoadingDemand] = useState(false);
   const [selectedForecastIdx, setSelectedForecastIdx] = useState(0);
+  const [demandSearch, setDemandSearch] = useState("");
 
   /* --- Anomalies --- */
   const [anomalyData, setAnomalyData] = useState<AnomalyResponse | null>(null);
@@ -234,6 +240,71 @@ export default function MLInsights() {
     { key: "anomalies",      label: "Anomaly Detection",icon: "⊗" },
   ];
 
+  const filteredSegments = useMemo(() => {
+    const q = segmentSearch.trim().toLowerCase();
+    if (!q) return segments;
+    return segments.filter((c) =>
+      [c.name, c.phone ?? "", c.segment, String(c.customer_id)]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [segments, segmentSearch]);
+
+  const filteredChurn = useMemo(() => {
+    const q = churnSearch.trim().toLowerCase();
+    if (!q) return churnData;
+    return churnData.filter((c) =>
+      [c.name, c.phone ?? "", c.level, c.reason, String(c.customer_id)]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [churnData, churnSearch]);
+
+  const filteredLtv = useMemo(() => {
+    const list = ltvData?.customers ?? [];
+    const q = ltvSearch.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((c) =>
+      [c.name, c.phone ?? "", c.ltv_tier, String(c.customer_id)]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [ltvData, ltvSearch]);
+
+  const filteredRecProducts = useMemo(() => {
+    const q = recProductSearch.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) =>
+      [p.name, p.sku ?? "", String(p.id)].join(" ").toLowerCase().includes(q)
+    );
+  }, [products, recProductSearch]);
+
+  const filteredPredProducts = useMemo(() => {
+    const q = predProductSearch.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) =>
+      [p.name, p.sku ?? "", String(p.id)].join(" ").toLowerCase().includes(q)
+    );
+  }, [products, predProductSearch]);
+
+  const filteredDemandForecasts = useMemo(() => {
+    const list = demandData?.forecasts ?? [];
+    const q = demandSearch.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((f) =>
+      [f.product_name, f.trend, String(f.product_id)].join(" ").toLowerCase().includes(q)
+    );
+  }, [demandData, demandSearch]);
+
+  useEffect(() => {
+    if (selectedForecastIdx >= filteredDemandForecasts.length) {
+      setSelectedForecastIdx(0);
+    }
+  }, [filteredDemandForecasts.length, selectedForecastIdx]);
+
   /* ══════════════════════════════════════════════════════
      PANEL RENDERERS
   ══════════════════════════════════════════════════════ */
@@ -253,11 +324,19 @@ export default function MLInsights() {
         </button>
       }
     >
+      <input
+        className="input-surface mb-4"
+        placeholder="Search customer by name, phone, segment, or ID..."
+        value={segmentSearch}
+        onChange={(e) => setSegmentSearch(e.target.value)}
+      />
       {loadingSegments ? <p className="text-zinc-400">Loading…</p> : segments.length === 0 ? (
         <p className="text-zinc-500">No data.</p>
+      ) : filteredSegments.length === 0 ? (
+        <p className="text-zinc-500">No matching customers.</p>
       ) : (
         <MLTable headers={["Customer", "Phone", "Spent", "Invoices", "Segment"]}>
-          {segments.map((c) => (
+          {filteredSegments.map((c) => (
             <tr key={c.customer_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
               <td className="px-3 py-2">{c.name}</td>
               <td className="px-3 py-2 text-zinc-400">{c.phone ?? "–"}</td>
@@ -288,14 +367,22 @@ export default function MLInsights() {
         </button>
       }
     >
+      <input
+        className="input-surface mb-4"
+        placeholder="Search customer by name, risk level, reason, or ID..."
+        value={churnSearch}
+        onChange={(e) => setChurnSearch(e.target.value)}
+      />
       {loadingChurn ? <p className="text-zinc-400">Calculating…</p> : churnData.length === 0 ? (
         <p className="text-zinc-500">No data.</p>
+      ) : filteredChurn.length === 0 ? (
+        <p className="text-zinc-500">No matching customers.</p>
       ) : (
         <>
           {/* Mini summary bar */}
           <div className="flex gap-3 mb-4 flex-wrap">
             {(["High", "Medium", "Low"] as const).map((lv) => {
-              const count = churnData.filter((c) => c.level === lv).length;
+              const count = filteredChurn.filter((c) => c.level === lv).length;
               return (
                 <div key={lv} className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${CHURN_COLORS[lv]}`}>
                   <span className="font-bold text-lg">{count}</span>
@@ -305,7 +392,7 @@ export default function MLInsights() {
             })}
           </div>
           <MLTable headers={["Customer", "Last Purchase", "Score", "Risk", "Reason"]}>
-            {churnData.map((c) => (
+            {filteredChurn.map((c) => (
               <tr key={c.customer_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
                 <td className="px-3 py-2">
                   <p className="font-medium">{c.name}</p>
@@ -353,8 +440,16 @@ export default function MLInsights() {
         </button>
       }
     >
+      <input
+        className="input-surface mb-4"
+        placeholder="Search customer by name, tier, phone, or ID..."
+        value={ltvSearch}
+        onChange={(e) => setLtvSearch(e.target.value)}
+      />
       {loadingLtv ? <p className="text-zinc-400">Calculating…</p> : !ltvData ? (
         <p className="text-zinc-500">No data.</p>
+      ) : filteredLtv.length === 0 ? (
+        <p className="text-zinc-500">No matching customers.</p>
       ) : (
         <>
           {/* Tier summary + total */}
@@ -371,7 +466,7 @@ export default function MLInsights() {
             </div>
           </div>
           <MLTable headers={["Customer", "Invoices", "Avg Order", "Freq/mo", "Predicted LTV", "Tier"]}>
-            {ltvData.customers.map((c) => (
+            {filteredLtv.map((c) => (
               <tr key={c.customer_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
                 <td className="px-3 py-2">
                   <p className="font-medium">{c.name}</p>
@@ -397,13 +492,19 @@ export default function MLInsights() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Recommendations */}
       <SectionCard title="Product Recommendations" subtitle="Association rules scored by lift (higher = stronger pairing)">
+        <input
+          className="input-surface mt-1 mb-2"
+          placeholder="Search product by name, SKU, or ID..."
+          value={recProductSearch}
+          onChange={(e) => setRecProductSearch(e.target.value)}
+        />
         <select
           className="input-surface mt-1 mb-4"
           value={selectedRecId}
           onChange={(e) => setSelectedRecId(e.target.value ? Number(e.target.value) : "")}
         >
           <option value="">— Select a product —</option>
-          {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {filteredRecProducts.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         {loadingRec ? <p className="text-zinc-400">Loading…</p> :
           !recData ? <p className="text-zinc-500 text-sm">Select a product above.</p> :
@@ -435,13 +536,19 @@ export default function MLInsights() {
 
       {/* Price Prediction */}
       <SectionCard title="Price Trend Prediction" subtitle="Linear regression on price history to forecast next price">
+        <input
+          className="input-surface mt-1 mb-2"
+          placeholder="Search product by name, SKU, or ID..."
+          value={predProductSearch}
+          onChange={(e) => setPredProductSearch(e.target.value)}
+        />
         <select
           className="input-surface mt-1 mb-4"
           value={selectedPredId}
           onChange={(e) => setSelectedPredId(e.target.value ? Number(e.target.value) : "")}
         >
           <option value="">— Select a product —</option>
-          {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {filteredPredProducts.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         {loadingPred ? <p className="text-zinc-400">Predicting…</p> :
           !predData ? <p className="text-zinc-500 text-sm">Select a product above.</p> :
@@ -469,8 +576,7 @@ export default function MLInsights() {
 
   /* ── 5. Demand Forecast ── */
   const renderDemand = () => {
-    const forecasts = demandData?.forecasts ?? [];
-    const selected = forecasts[selectedForecastIdx];
+    const selected = filteredDemandForecasts[selectedForecastIdx];
     return (
       <SectionCard
         title="Demand Forecasting"
@@ -485,13 +591,21 @@ export default function MLInsights() {
           </button>
         }
       >
-        {loadingDemand ? <p className="text-zinc-400">Forecasting…</p> : forecasts.length === 0 ? (
+        <input
+          className="input-surface mb-4"
+          placeholder="Search product in forecast by name, trend, or ID..."
+          value={demandSearch}
+          onChange={(e) => setDemandSearch(e.target.value)}
+        />
+        {loadingDemand ? <p className="text-zinc-400">Forecasting…</p> : (demandData?.forecasts ?? []).length === 0 ? (
           <p className="text-zinc-500">No sales data in last 30 days.</p>
+        ) : filteredDemandForecasts.length === 0 ? (
+          <p className="text-zinc-500">No matching forecast products.</p>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Product selector list */}
             <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
-              {forecasts.map((f, i) => (
+              {filteredDemandForecasts.map((f, i) => (
                 <button
                   key={f.product_id}
                   onClick={() => setSelectedForecastIdx(i)}
