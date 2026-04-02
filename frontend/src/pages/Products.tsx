@@ -30,6 +30,10 @@ export default function Products() {
   const [categories, setCategories] = useState<Category[]>([]);
 
   const [restockMap, setRestockMap] = useState<Record<number, number>>({});
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const categoryMap: Record<number, string> = {};
+  for (const c of categories) categoryMap[c.id] = c.name;
 
   const loadProducts = async () => {
     const res = await api.get<Product[]>("/products/list");
@@ -52,7 +56,7 @@ export default function Products() {
   const addProduct = async () => {
     const priceNum = parseFloat(price);
     const stockNum = parseInt(stock) || 0;
-    const taxNum   = parseFloat(taxRate) || 18;
+    const taxNum = parseFloat(taxRate) || 18;
     if (!name || !sku || isNaN(priceNum) || priceNum <= 0) {
       alert("Please enter valid product details");
       return;
@@ -73,7 +77,7 @@ export default function Products() {
     setStock("");
     setTaxRate("18");
     setCategoryId("");
-
+    setShowAddForm(false);
     loadProducts();
   };
 
@@ -85,9 +89,7 @@ export default function Products() {
   const restockProduct = async (id: number) => {
     const qty = restockMap[id];
     if (!qty || qty <= 0) return;
-
     await api.put(`/products/restock/${id}`, { quantity: qty });
-
     setRestockMap((prev) => ({ ...prev, [id]: 0 }));
     loadProducts();
   };
@@ -95,154 +97,217 @@ export default function Products() {
   const filtered = products.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.sku.toLowerCase().includes(search.toLowerCase()) ||
       p.id.toString().includes(search)
   );
 
-  if (loading) return <p className="text-zinc-400">Loading...</p>;
+  /* stock badge helper */
+  const stockBadge = (s: number) => {
+    if (s <= 0) return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-400/15">Out of Stock</span>;
+    if (s <= 10) return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-400/15">{s} left</span>;
+    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-400/15">{s} in stock</span>;
+  };
+
+  if (loading) return <p className="text-zinc-400">Loading…</p>;
+
+  /* summary stats */
+  const totalProducts = products.length;
+  const outOfStock = products.filter((p) => p.stock <= 0).length;
+  const lowStock = products.filter((p) => p.stock > 0 && p.stock <= 10).length;
+  const totalValue = products.reduce((s, p) => s + p.price * p.stock, 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
 
-      {/* ADD PRODUCT CARD */}
-      <div className="glass-card rounded-2xl p-6 shadow-xl fade-in">
-        <h2 className="section-title text-gradient mb-4">Add New Product</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input
-            placeholder="Product Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="input-surface"
-          />
-          <input
-            placeholder="SKU"
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-            className="input-surface"
-          />
-          <input
-            type="number"
-            placeholder="Price (₹)"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="input-surface"
-          />
-          <input
-            type="number"
-            placeholder="Initial Stock"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-            className="input-surface"
-          />
+      {/* ── Header bar ── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-gradient">Product Inventory</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Manage your product catalog, stock levels, and pricing</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <input
-            type="number"
-            placeholder="GST Rate % (e.g. 18)"
-            value={taxRate}
-            onChange={(e) => setTaxRate(e.target.value)}
-            className="input-surface"
-          />
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}
-            className="input-surface"
-          >
-            <option value="">No Category</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-
         <button
-          onClick={addProduct}
-          className="btn-primary mt-4 px-6 py-2 font-medium"
+          onClick={() => setShowAddForm((v) => !v)}
+          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
+            showAddForm
+              ? "bg-white/10 border border-white/10 text-slate-300 hover:bg-white/15"
+              : "btn-primary"
+          }`}
         >
-          Add Product
+          {showAddForm ? (
+            <>
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Cancel
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+              Add Product
+            </>
+          )}
         </button>
       </div>
 
-      {/* SEARCH */}
-      <input
-        placeholder="Search by name or ID..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="input-surface"
-      />
+      {/* ── Stats row ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: "Total Products", value: totalProducts, icon: "📦", color: "from-cyan-500/20 to-cyan-600/5 border-cyan-400/15" },
+          { label: "Inventory Value", value: `₹${totalValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`, icon: "💰", color: "from-emerald-500/20 to-emerald-600/5 border-emerald-400/15" },
+          { label: "Low Stock", value: lowStock, icon: "⚠️", color: "from-amber-500/20 to-amber-600/5 border-amber-400/15" },
+          { label: "Out of Stock", value: outOfStock, icon: "🚫", color: "from-rose-500/20 to-rose-600/5 border-rose-400/15" },
+        ].map((stat) => (
+          <div key={stat.label} className={`rounded-2xl border bg-gradient-to-br ${stat.color} p-4 backdrop-blur-sm`}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base">{stat.icon}</span>
+              <span className="text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">{stat.label}</span>
+            </div>
+            <p className="text-xl font-bold text-slate-100">{stat.value}</p>
+          </div>
+        ))}
+      </div>
 
-      {/* PRODUCT TABLE */}
-      <div className="glass-card rounded-2xl shadow-xl overflow-hidden fade-in stagger-1">
-        <table className="w-full text-sm">
-          <thead className="bg-[#1b214a]/70 text-slate-300/80">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Name</th>
-              <th className="py-3 px-4 text-left">SKU</th>
-              <th className="py-3 px-4 text-right">Price</th>
-              <th className="py-3 px-4 text-right">GST%</th>
-              <th className="py-3 px-4 text-right">Stock</th>
-              <th className="py-3 px-4 text-center">Actions</th>
-            </tr>
-          </thead>
+      {/* ── Add Product Form (collapsible) ── */}
+      {showAddForm && (
+        <div className="glass-card rounded-2xl p-5 fade-in border border-cyan-400/10">
+          <h2 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+            <svg viewBox="0 0 24 24" className="h-4 w-4 text-cyan-400" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+            New Product Details
+          </h2>
 
-          <tbody>
-            {filtered.map((p) => (
-              <tr
-                key={p.id}
-                className="border-b border-[#33437f]/25 hover:bg-[#24366c]/20 transition"
-              >
-                <td className="px-4 py-3">{p.id}</td>
-                <td className="px-4 py-3 font-medium">{p.name}</td>
-                <td className="px-4 py-3 text-zinc-400">{p.sku}</td>
-                <td className="px-4 py-3 text-right text-indigo-400">
-                  ₹ {p.price}
-                </td>
-                <td className="px-4 py-3 text-right text-zinc-400">
-                  {p.tax_rate}%
-                </td>
-                <td
-                  className={`px-4 py-3 text-right font-semibold ${
-                    p.stock === 0 ? "text-red-400" : "text-green-400"
-                  }`}
-                >
-                  {p.stock}
-                </td>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1 block">Product Name</label>
+              <input placeholder="Product name" value={name} onChange={(e) => setName(e.target.value)} className="input-surface text-sm" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1 block">SKU Code</label>
+              <input placeholder="SKU code" value={sku} onChange={(e) => setSku(e.target.value)} className="input-surface text-sm" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1 block">Price (₹)</label>
+              <input type="number" placeholder="0.00" value={price} onChange={(e) => setPrice(e.target.value)} className="input-surface text-sm" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1 block">Initial Stock</label>
+              <input type="number" placeholder="0" value={stock} onChange={(e) => setStock(e.target.value)} className="input-surface text-sm" />
+            </div>
+          </div>
 
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-center gap-2">
-                    <input
-                      type="number"
-                      value={restockMap[p.id] || ""}
-                      onChange={(e) =>
-                        setRestockMap((prev) => ({
-                          ...prev,
-                          [p.id]: Number(e.target.value),
-                        }))
-                      }
-                      placeholder="Qty"
-                      className="w-16 input-surface px-2 py-1 text-xs"
-                    />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1 block">GST Rate %</label>
+              <input type="number" placeholder="18" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="input-surface text-sm" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1 block">Category</label>
+              <select value={categoryId} onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")} className="input-surface text-sm">
+                <option value="">No Category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-                    <button
-                      onClick={() => restockProduct(p.id)}
-                      className="px-3 py-1 bg-emerald-600/85 hover:bg-emerald-500 rounded-lg text-xs"
-                    >
-                      Restock
-                    </button>
+          <button onClick={addProduct} className="btn-primary mt-4 px-6 py-2.5 text-sm font-semibold rounded-xl flex items-center gap-2">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7"/></svg>
+            Save Product
+          </button>
+        </div>
+      )}
 
-                    <button
-                      onClick={() => deleteProduct(p.id)}
-                      className="btn-danger px-3 py-1 rounded-lg text-xs"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
+      {/* ── Search bar ── */}
+      <div className="glass-card rounded-2xl p-4">
+        <input
+          placeholder="Search by name, SKU, or ID…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="input-surface text-sm"
+        />
+        {search && (
+          <p className="text-[11px] text-slate-500 mt-2">{filtered.length} result{filtered.length !== 1 ? "s" : ""} for "{search}"</p>
+        )}
+      </div>
+
+      {/* ── Product Table ── */}
+      <div className="glass-card rounded-2xl overflow-hidden fade-in stagger-1">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#18275a]/60 border-b border-[#33437f]/40">
+                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">Product</th>
+                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold hidden md:table-cell">SKU</th>
+                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold hidden lg:table-cell">Category</th>
+                <th className="py-3.5 px-4 text-right text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">Price</th>
+                <th className="py-3.5 px-4 text-right text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold hidden sm:table-cell">GST</th>
+                <th className="py-3.5 px-4 text-center text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">Stock</th>
+                <th className="py-3.5 px-4 text-center text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-slate-500 text-sm">No products found.</td>
+                </tr>
+              )}
+
+              {filtered.map((p) => (
+                <tr
+                  key={p.id}
+                  className={`border-b border-white/5 transition hover:bg-[#1f3370]/15 ${p.stock <= 0 ? "opacity-60" : ""}`}
+                >
+                  <td className="px-4 py-3.5">
+                    <p className="font-medium text-slate-100 text-[13px]">{p.name}</p>
+                    <p className="text-[10px] text-slate-500 md:hidden">{p.sku}</p>
+                  </td>
+                  <td className="px-4 py-3.5 hidden md:table-cell">
+                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-[11px] font-mono text-slate-400">{p.sku}</span>
+                  </td>
+                  <td className="px-4 py-3.5 text-slate-400 text-xs hidden lg:table-cell">
+                    {p.category_id && categoryMap[p.category_id] ? categoryMap[p.category_id] : <span className="text-slate-600">–</span>}
+                  </td>
+                  <td className="px-4 py-3.5 text-right">
+                    <span className="text-cyan-300 font-semibold">₹{p.price}</span>
+                  </td>
+                  <td className="px-4 py-3.5 text-right text-slate-500 text-xs hidden sm:table-cell">{p.tax_rate}%</td>
+                  <td className="px-4 py-3.5 text-center">{stockBadge(p.stock)}</td>
+
+                  <td className="px-4 py-3.5">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      {/* Restock inline */}
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={restockMap[p.id] || ""}
+                          onChange={(e) =>
+                            setRestockMap((prev) => ({ ...prev, [p.id]: Number(e.target.value) }))
+                          }
+                          placeholder="Qty"
+                          className="w-14 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-400/40"
+                        />
+                        <button
+                          onClick={() => restockProduct(p.id)}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-400/15 text-emerald-300 text-[11px] font-semibold hover:bg-emerald-500/25 transition"
+                          title="Restock"
+                        >
+                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => deleteProduct(p.id)}
+                        className="px-2.5 py-1.5 rounded-lg bg-rose-500/15 border border-rose-400/15 text-rose-300 text-[11px] font-semibold hover:bg-rose-500/25 transition"
+                        title="Delete"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

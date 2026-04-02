@@ -22,7 +22,7 @@ if not exist "%FRONTEND_BAT%" (
 
 start "SmartPOS Backend" cmd /k ""%BACKEND_BAT%""
 timeout /t 3 >nul
-start "SmartPOS Frontend" cmd /k ""%FRONTEND_BAT%""
+start "SmartPOS CRM AI Frontend" cmd /k ""%FRONTEND_BAT%""
 
 echo [INFO] Backend and frontend launch commands sent.
 pause

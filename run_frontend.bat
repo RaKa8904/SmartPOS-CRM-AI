@@ -1,7 +1,7 @@
 @echo off
 setlocal
 echo ===============================
-echo Starting Frontend (Vite + React)
+echo Starting SmartPOS CRM AI Frontend (Vite + React)
 echo ===============================
 
 set "ROOT_DIR=%~dp0"

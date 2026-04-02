@@ -268,14 +268,14 @@ App URLs:
 
 ## Demo Data Seeding
 
-Use the provided reset-and-seed utility:
+Use the comprehensive seed script to populate 30 days of realistic demo data:
 
 ```bash
 cd backend
-venv\Scripts\python.exe -m app.db.reset_seed_demo
+venv\Scripts\python.exe scripts/seed_full_demo.py
 ```
 
-This reseeds business entities (categories, products, customers, invoices, invoice items, price history) while preserving registered users.
+This seeds all business entities (12 categories, 50 products, 35 customers, 400+ invoices with line items, price history, notification campaigns, audit logs, and inventory shortages) while preserving registered users. Payment methods include cash, UPI, card, and credit.
 
 ## Build and Validation
 
