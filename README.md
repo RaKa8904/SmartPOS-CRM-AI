@@ -2,7 +2,7 @@
 
 SmartPOS CRM AI is a full-stack retail operations platform that combines POS billing, CRM workflows, pricing intelligence, notifications, analytics, and machine learning in one system.
 
-It is built for practical business usage and local deployment demos with role-based access, secure authentication, and seeded analytics-ready data.
+It is built for practical business usage with role-based access, secure authentication, and seeded analytics-ready data.
 
 ## Highlights
 
@@ -184,17 +184,17 @@ Recent UX additions in ML Insights:
 
 ## Role Access Matrix
 
-| Area | Admin | Manager | Cashier |
-| --- | --- | --- | --- |
-| Dashboard | Yes | Yes | No |
-| Billing | Yes | Yes | Yes |
-| Products | Yes | Yes | No |
-| Categories | Yes | Yes | No |
-| Customers | Yes | Yes | Yes |
-| Pricing | Yes | Yes | No |
-| Notifications | Yes | Yes | No |
-| ML Insights | Yes | Yes | No |
-| Users / Audit / User Activity | Admin only | No | No |
+| Area                          | Admin      | Manager | Cashier |
+| ----------------------------- | ---------- | ------- | ------- |
+| Dashboard                     | Yes        | Yes     | No      |
+| Billing                       | Yes        | Yes     | Yes     |
+| Products                      | Yes        | Yes     | No      |
+| Categories                    | Yes        | Yes     | No      |
+| Customers                     | Yes        | Yes     | Yes     |
+| Pricing                       | Yes        | Yes     | No      |
+| Notifications                 | Yes        | Yes     | No      |
+| ML Insights                   | Yes        | Yes     | No      |
+| Users / Audit / User Activity | Admin only | No      | No      |
 
 ## Local Setup
 
@@ -279,7 +279,7 @@ This seeds all business entities (12 categories, 50 products, 35 customers, 400+
 
 ## Build and Validation
 
-### Frontend production build
+### Frontend build
 
 ```bash
 cd frontend
@@ -300,21 +300,10 @@ npm run build
 - `/ml` segmentation/churn/ltv/recommendations/forecast/anomalies
 - `/users`, `/audit-logs`, `/user-activity` admin modules
 
-## Production Notes
-
-Before production, strongly consider:
-
-- HTTPS termination and secure reverse proxy configuration
-- HttpOnly cookie token strategy (instead of localStorage token storage)
-- Refresh token rotation with token replay detection
-- Strict CORS for production domains
-- Dependency CVE scanning in CI
-- Non-root runtime for containers
-
 ## License
 
 This project is distributed under the terms in [LICENSE](LICENSE).
 
 ## Author
 
-Built by RaKa as a full-stack Smart POS + CRM + AI platform for practical deployment and portfolio demonstration.
+Built by RaKa as a full-stack Smart POS + CRM + AI platform.
