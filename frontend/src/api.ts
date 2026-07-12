@@ -1,7 +1,13 @@
 import axios from "axios";
 
+const getBaseURL = () => {
+  const url = import.meta.env.VITE_API_URL;
+  if (!url) return "http://127.0.0.1:8000";
+  return url.startsWith("http") ? url : `https://${url}`;
+};
+
 export const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: getBaseURL(),
 });
 
 const isAuthPath = (url?: string) => {
@@ -16,7 +22,7 @@ async function tryRefreshAccessToken(): Promise<string | null> {
   if (!refreshToken) return null;
 
   try {
-    const res = await axios.post("http://127.0.0.1:8000/auth/refresh", {
+    const res = await axios.post(`${getBaseURL()}/auth/refresh`, {
       refresh_token: refreshToken,
     });
 

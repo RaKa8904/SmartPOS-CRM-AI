@@ -43,14 +43,31 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SecurityHeadersMiddleware)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+import os
+
+allowed_origins_raw = os.getenv("ALLOWED_ORIGINS", "")
+if allowed_origins_raw:
+    origins = []
+    for orig in allowed_origins_raw.split(","):
+        orig = orig.strip()
+        if not orig:
+            continue
+        if not orig.startswith("http://") and not orig.startswith("https://"):
+            origins.append(f"https://{orig}")
+            origins.append(f"http://{orig}")
+        else:
+            origins.append(orig)
+else:
+    origins = [
         "http://localhost:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
-    ],
+    ]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
