@@ -21,10 +21,11 @@ services:
           property: host
 
   # Frontend Static Site
-  - type: static
+  - type: web
     name: smartpos-frontend
+    runtime: static
     buildCommand: npm run build
-    publishPath: dist
+    staticPublishPath: dist
     rootDir: frontend
     envVars:
       - key: VITE_API_URL
