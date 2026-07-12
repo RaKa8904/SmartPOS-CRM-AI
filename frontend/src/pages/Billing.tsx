@@ -336,19 +336,19 @@ export default function Billing() {
               <tr key={index} className="border-b border-zinc-800 print:border-black">
                 <td className="py-2.5">{item.name}</td>
                 <td className="py-2.5 text-center">{item.quantity}</td>
-                <td className="py-2.5 text-right text-cyan-200">₹ {item.price}</td>
-                <td className="py-2.5 text-right font-medium">₹ {item.line_total}</td>
+                <td className="py-2.5 text-right text-[#e1e2e7]"><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{item.price}</span></td>
+                <td className="py-2.5 text-right font-medium text-[#e1e2e7]"><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{item.line_total}</span></td>
               </tr>
             ))}
           </tbody>
         </table>
 
         <div className="border-t border-zinc-700 pt-3 space-y-1 text-sm">
-          <div className="flex justify-between text-slate-400"><span>Subtotal</span><span>₹ {invoiceData.subtotal?.toFixed(2)}</span></div>
-          <div className="flex justify-between text-slate-400"><span>GST</span><span>₹ {invoiceData.tax_amount?.toFixed(2)}</span></div>
-          <div className="flex justify-between text-lg font-bold text-white pt-1"><span>Grand Total</span><span>₹ {invoiceData.total_amount?.toFixed(2)}</span></div>
+          <div className="flex justify-between text-slate-400"><span>Subtotal</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{invoiceData.subtotal?.toFixed(2)}</span></span></div>
+          <div className="flex justify-between text-slate-400"><span>GST</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{invoiceData.tax_amount?.toFixed(2)}</span></span></div>
+          <div className="flex justify-between text-lg font-bold text-[#e1e2e7] pt-1"><span>Grand Total</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{invoiceData.total_amount?.toFixed(2)}</span></span></div>
           {invoiceData.change_due != null && invoiceData.change_due > 0 && (
-            <div className="flex justify-between text-emerald-400 font-semibold"><span>Change Due</span><span>₹ {invoiceData.change_due.toFixed(2)}</span></div>
+            <div className="flex justify-between text-emerald-400 font-semibold"><span>Change Due</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{invoiceData.change_due.toFixed(2)}</span></span></div>
           )}
         </div>
 
@@ -447,14 +447,14 @@ export default function Billing() {
                 </div>
               )}
               {cart.map((i) => (
-                <div key={i.product_id} className="group flex items-center gap-3 bg-[#0b1635]/80 p-2.5 rounded-xl border border-[#33437f]/30 hover:border-cyan-400/20 transition">
+                <div key={i.product_id} className="group flex items-center gap-3 bg-[#121214]/80 p-2.5 rounded-xl border border-[rgba(74,104,105,0.25)] hover:border-[--pos-accent] transition">
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-slate-100 truncate">{i.name}</p>
-                    <p className="text-[11px] text-slate-500">₹{i.price} × {i.qty} = <span className="text-cyan-300 font-semibold">₹{(i.price * i.qty).toFixed(2)}</span></p>
+                    <p className="text-[13px] font-medium text-[#e1e2e7] truncate">{i.name}</p>
+                    <p className="text-[11px] text-[#8e909a]"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{i.price}</span> × <span className="font-number">{i.qty}</span> = <span className="text-[#e1e2e7] font-semibold"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{(i.price * i.qty).toFixed(2)}</span></span></p>
                   </div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => decreaseQty(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold transition">−</button>
-                    <span className="text-xs w-6 text-center font-bold text-white">{i.qty}</span>
+                    <span className="text-xs w-6 text-center font-bold text-white font-number">{i.qty}</span>
                     <button onClick={() => increaseQty(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold transition">+</button>
                     <button onClick={() => removeItem(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 text-xs transition ml-1">✕</button>
                   </div>
@@ -466,12 +466,12 @@ export default function Billing() {
           {/* Totals & Payment */}
           <div className="glass-card rounded-2xl p-4 space-y-3">
             {/* Bill summary */}
-            <div className="bg-[#0b1635]/80 border border-[#33437f]/30 rounded-xl p-3 space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-400"><span>Subtotal</span><span>₹ {subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between text-xs text-slate-400"><span>Est. GST</span><span>₹ {estimatedTax.toFixed(2)}</span></div>
+            <div className="bg-[#121214]/80 border border-[rgba(74,104,105,0.25)] rounded-xl p-3 space-y-1.5">
+              <div className="flex justify-between text-xs text-slate-400"><span>Subtotal</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{subtotal.toFixed(2)}</span></span></div>
+              <div className="flex justify-between text-xs text-slate-400"><span>Est. GST</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{estimatedTax.toFixed(2)}</span></span></div>
               <div className="border-t border-white/5 pt-1.5 flex justify-between text-sm font-bold">
                 <span className="text-slate-200">Payable Total</span>
-                <span className="text-cyan-300 text-base">₹ {estimatedGrandTotal.toFixed(2)}</span>
+                <span className="text-[#e1e2e7] text-base font-cyber"><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{estimatedGrandTotal.toFixed(2)}</span></span>
               </div>
             </div>
 
@@ -508,7 +508,11 @@ export default function Billing() {
                 />
                 {estimatedChange !== null && (
                   <p className={`text-xs mt-1 font-medium ${estimatedChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                    {estimatedChange >= 0 ? `Change: ₹ ${estimatedChange.toFixed(2)}` : `Short by: ₹ ${Math.abs(estimatedChange).toFixed(2)}`}
+                    {estimatedChange >= 0 ? (
+                      <>Change: <span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{estimatedChange.toFixed(2)}</span></>
+                    ) : (
+                      <>Short by: <span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{Math.abs(estimatedChange).toFixed(2)}</span></>
+                    )}
                   </p>
                 )}
               </div>
@@ -578,8 +582,8 @@ export default function Billing() {
                   onClick={() => setShowOnlyInStock((v) => !v)}
                   className={`px-3 py-2 rounded-xl border text-[11px] font-semibold transition whitespace-nowrap ${
                     showOnlyInStock
-                      ? "bg-emerald-500/20 border-emerald-400/30 text-emerald-300"
-                      : "bg-white/5 border-white/8 text-slate-400 hover:text-slate-300"
+                      ? "bg-[rgba(74,104,105,0.18)] border-[--pos-accent] text-[#e1e2e7]"
+                      : "bg-white/5 border-white/8 text-[#8e909a] hover:text-[#e1e2e7]"
                   }`}
                 >
                   In Stock
@@ -594,8 +598,8 @@ export default function Billing() {
               onClick={() => setActiveCategory("all")}
               className={`shrink-0 px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
                 activeCategory === "all"
-                  ? "bg-cyan-500/20 border-cyan-400/30 text-cyan-200 shadow-[0_0_20px_rgba(0,245,255,0.1)]"
-                  : "bg-white/5 border-white/8 text-slate-400 hover:bg-white/8 hover:text-slate-300"
+                  ? "bg-[rgba(74,104,105,0.18)] border-[--pos-accent] text-[#e1e2e7] shadow-sm"
+                  : "bg-white/5 border-white/8 text-[#8e909a] hover:bg-white/8 hover:text-[#e1e2e7]"
               }`}
             >
               🏪 All <span className="ml-1 text-[10px] opacity-70">({categoryCounts.all || 0})</span>
@@ -606,8 +610,8 @@ export default function Billing() {
                 onClick={() => setActiveCategory(cat.id)}
                 className={`shrink-0 px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
                   activeCategory === cat.id
-                    ? "bg-cyan-500/20 border-cyan-400/30 text-cyan-200 shadow-[0_0_20px_rgba(0,245,255,0.1)]"
-                    : "bg-white/5 border-white/8 text-slate-400 hover:bg-white/8 hover:text-slate-300"
+                    ? "bg-[rgba(74,104,105,0.18)] border-[--pos-accent] text-[#e1e2e7] shadow-sm"
+                    : "bg-white/5 border-white/8 text-[#8e909a] hover:bg-white/8 hover:text-[#e1e2e7]"
                 }`}
               >
                 {catEmojis[cat.name] || "📦"} {cat.name} <span className="ml-1 text-[10px] opacity-70">({categoryCounts[cat.id] || 0})</span>
@@ -641,10 +645,10 @@ export default function Billing() {
                     key={p.id}
                     className={`group relative rounded-2xl border transition-all duration-200 overflow-hidden ${
                       inCart
-                        ? "border-cyan-400/30 bg-cyan-500/5 shadow-[0_0_25px_rgba(0,245,255,0.06)]"
+                        ? "border-[--pos-accent] bg-[rgba(74,104,105,0.06)] shadow-sm"
                         : isOut
-                          ? "border-white/5 bg-[#0d1130]/60 opacity-60"
-                          : "border-white/8 bg-[#0d1130]/80 hover:border-cyan-400/15 hover:bg-[#0d1130]/95"
+                          ? "border-white/5 bg-[#121214]/60 opacity-60"
+                          : "border-white/8 bg-[#1c1c1f]/80 hover:border-[rgba(74,104,105,0.3)] hover:bg-[#1c1c1f]/95"
                     }`}
                   >
                     {/* Category tag strip */}
@@ -665,7 +669,7 @@ export default function Billing() {
 
                       <div className="flex items-end justify-between mt-3">
                         <div>
-                          <p className="text-lg font-bold text-cyan-300">₹{p.price}</p>
+                          <p className="text-lg font-bold text-[#e1e2e7]"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{p.price}</span></p>
                           <p className="text-[10px] text-slate-500">GST {p.tax_rate}%</p>
                         </div>
 
@@ -674,7 +678,7 @@ export default function Billing() {
                         ) : inCart ? (
                           <div className="flex items-center gap-1.5">
                             <button onClick={() => decreaseQty(p.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold transition">−</button>
-                            <span className="text-sm w-6 text-center font-bold text-cyan-300">{getCartQty(p.id)}</span>
+                            <span className="text-sm w-6 text-center font-bold text-[#e1e2e7] font-number">{getCartQty(p.id)}</span>
                             <button onClick={() => increaseQty(p.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold transition">+</button>
                           </div>
                         ) : (
@@ -723,7 +727,7 @@ export default function Billing() {
                         </td>
                         <td className="px-3 py-2.5 text-slate-400 text-xs hidden md:table-cell">{catEmojis[catName] || ""} {catName}</td>
                         <td className="px-3 py-2.5 text-slate-500 text-xs font-mono hidden sm:table-cell">{p.sku}</td>
-                        <td className="px-3 py-2.5 text-right text-cyan-200 font-semibold">₹{p.price}</td>
+                        <td className="px-3 py-2.5 text-right text-[#e1e2e7] font-semibold"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{p.price}</span></td>
                         <td className="px-3 py-2.5 text-center">{stockBadge(p.id)}</td>
                         <td className="px-3 py-2.5 text-center">
                           {isOut ? (

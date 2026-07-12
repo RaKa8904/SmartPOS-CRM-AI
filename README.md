@@ -202,7 +202,7 @@ Recent UX additions in ML Insights:
 
 - Python 3.10+
 - Node.js 18+
-- PostgreSQL 14+
+- PostgreSQL 14+ (Ensure you create a blank database named `smart_pos_crm_ai` before running the backend)
 - Git
 
 ### 1) Clone
@@ -242,7 +242,17 @@ Generate secrets:
 python -c "import secrets; print(secrets.token_hex(64))"
 ```
 
-### 3) Run Backend
+### 3) Run with Windows Batch Scripts (Convenience)
+
+For Windows users, pre-configured batch scripts are provided in the project root to run the application easily:
+
+- **Launch Both (Full Stack)**: Run [run_full_stack.bat](file:///c:/Users/Raka/Projects/SmartPOS-CRM-AI/run_full_stack.bat) to automatically install frontend dependencies, start the FastAPI backend server (waiting 3 seconds for it to bind), and launch the React Vite dev server in separate windows.
+- **Launch Backend Only**: Run [run_backend.bat](file:///c:/Users/Raka/Projects/SmartPOS-CRM-AI/run_backend.bat).
+- **Launch Frontend Only**: Run [run_frontend.bat](file:///c:/Users/Raka/Projects/SmartPOS-CRM-AI/run_frontend.bat).
+
+Alternatively, follow the manual instructions below:
+
+### 4) Run Backend (Manual)
 
 ```bash
 cd backend
@@ -252,7 +262,7 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### 4) Run Frontend
+### 5) Run Frontend (Manual)
 
 ```bash
 cd frontend
@@ -274,6 +284,9 @@ Use the comprehensive seed script to populate 30 days of realistic demo data:
 cd backend
 venv\Scripts\python.exe scripts/seed_full_demo.py
 ```
+
+> [!NOTE]
+> The database seeding script runs over the schema created automatically by the backend. Ensure you run the backend service at least once first (so the database tables are created) before running the seeding script.
 
 This seeds all business entities (12 categories, 50 products, 35 customers, 400+ invoices with line items, price history, notification campaigns, audit logs, and inventory shortages) while preserving registered users. Payment methods include cash, UPI, card, and credit.
 

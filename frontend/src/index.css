@@ -1,16 +1,22 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
 :root {
-	--pos-bg-1: #0f0c29;
-	--pos-bg-2: #302b63;
-	--pos-bg-3: #24243e;
-	--pos-accent: #00f5ff;
-	--pos-accent-soft: #86f8ff;
-	--pos-violet: #7b61ff;
-	--pos-surface: rgba(12, 15, 30, 0.72);
-	--pos-border: rgba(123, 97, 255, 0.28);
-	--pos-text: #dbe8ff;
-	--pos-muted: #8ea3c7;
+	--pos-bg-1: #121214;
+	--pos-bg-2: #151518;
+	--pos-bg-3: #0f0f11;
+	--pos-accent: #4a6869;
+	--pos-accent-soft: #81999a;
+	--pos-accent-pink: #4a6869;
+	--pos-accent-cyan: #4a6869;
+	--pos-accent-purple: #647d7e;
+	--pos-accent-copper: #cba16c;
+	--pos-violet: #566c72;
+	--pos-surface: #1c1c1f;
+	--pos-border: rgba(74, 104, 105, 0.22);
+	--pos-border-glow: rgba(74, 104, 105, 0.15);
+	--pos-text: #e1e2e7;
+	--pos-muted: #8e909a;
 }
 
 * {
@@ -26,8 +32,9 @@ body,
 body {
 	margin: 0;
 	color: var(--pos-text);
-	background: radial-gradient(1200px 600px at -10% -15%, rgba(0, 245, 255, 0.16), transparent 45%),
-		radial-gradient(900px 500px at 110% 120%, rgba(123, 97, 255, 0.2), transparent 40%),
+	font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	background: radial-gradient(1200px 600px at -10% -15%, rgba(74, 104, 105, 0.1), transparent 45%),
+		radial-gradient(900px 500px at 110% 120%, rgba(74, 104, 105, 0.1), transparent 40%),
 		linear-gradient(130deg, var(--pos-bg-1) 10%, var(--pos-bg-2) 55%, var(--pos-bg-3) 100%);
 	background-attachment: fixed;
 }
@@ -37,9 +44,7 @@ body::before {
 	position: fixed;
 	inset: 0;
 	pointer-events: none;
-	background: linear-gradient(120deg, rgba(0, 245, 255, 0.08), transparent 30%, rgba(123, 97, 255, 0.08));
-	mix-blend-mode: screen;
-	animation: hueShift 10s ease-in-out infinite;
+	background: none;
 }
 
 .app-shell {
@@ -47,36 +52,38 @@ body::before {
 	isolation: isolate;
 }
 
+/* Professional Grid Background */
 .app-shell::after {
 	content: "";
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	background-image: radial-gradient(rgba(255, 255, 255, 0.09) 0.65px, transparent 0.65px);
+	background-image: 
+		radial-gradient(rgba(74, 104, 105, 0.04) 1px, transparent 1px);
 	background-size: 24px 24px;
-	opacity: 0.2;
+	opacity: 0.5;
 }
 
 .glass-card {
 	background: var(--pos-surface);
 	border: 1px solid var(--pos-border);
 	backdrop-filter: blur(16px);
-	box-shadow: 0 14px 42px rgba(3, 9, 30, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+	box-shadow: 0 14px 42px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .glow-ring {
-	box-shadow: 0 0 0 1px rgba(0, 245, 255, 0.3), 0 0 30px rgba(0, 245, 255, 0.12);
+	box-shadow: 0 0 0 1px rgba(74, 104, 105, 0.35), 0 0 30px rgba(74, 104, 105, 0.1);
 }
 
 .section-title {
 	font-size: 1.15rem;
 	font-weight: 700;
-	letter-spacing: 0.02em;
-	color: #e5ecff;
+	letter-spacing: 0.03em;
+	color: #ffffff;
 }
 
 .text-gradient {
-	background: linear-gradient(90deg, #00f5ff 0%, #8cf0ff 35%, #9b8cff 100%);
+	background: linear-gradient(90deg, #cba16c 0%, #e1e2e7 50%, #81999a 100%);
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;
@@ -85,36 +92,38 @@ body::before {
 .input-surface {
 	width: 100%;
 	border-radius: 12px;
-	border: 1px solid rgba(112, 122, 170, 0.35);
-	background: rgba(7, 12, 27, 0.78);
+	border: 1px solid rgba(74, 104, 105, 0.25);
+	background: rgba(20, 20, 22, 0.85);
 	color: var(--pos-text);
 	padding: 0.62rem 0.74rem;
 	transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .input-surface::placeholder {
-	color: rgba(142, 163, 199, 0.72);
+	color: rgba(142, 144, 154, 0.6);
 }
 
 .input-surface:focus {
 	outline: none;
-	border-color: rgba(0, 245, 255, 0.75);
-	box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.18);
+	border-color: rgba(74, 104, 105, 0.75);
+	box-shadow: 0 0 0 3px rgba(74, 104, 105, 0.15);
 }
 
 .btn-primary {
 	border: 0;
 	border-radius: 12px;
-	background: linear-gradient(100deg, #00d2ff, #3a7bff 42%, #7b61ff);
-	color: #eff8ff;
+	background: linear-gradient(100deg, #3a5354, #4a6869 55%, #5a7d7e);
+	color: #ffffff;
 	font-weight: 600;
+	letter-spacing: 0.02em;
 	transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
-	box-shadow: 0 10px 24px rgba(58, 123, 255, 0.36);
+	box-shadow: 0 8px 20px rgba(74, 104, 105, 0.15);
 }
 
 .btn-primary:hover {
 	filter: brightness(1.08);
 	transform: translateY(-1px);
+	box-shadow: 0 10px 24px rgba(74, 104, 105, 0.25);
 }
 
 .btn-primary:disabled {
@@ -143,6 +152,33 @@ body::before {
 
 .stagger-3 {
 	animation-delay: 180ms;
+}
+
+/* Custom Cyberpunk Font Utilities */
+.font-cyber {
+	font-family: 'Orbitron', sans-serif;
+	letter-spacing: 0.05em;
+}
+
+.font-number {
+	font-family: 'JetBrains Mono', monospace;
+}
+
+/* Grounded Glows */
+.neon-glow-magenta {
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.neon-glow-cyan {
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Asymmetric Broken Border Layouts */
+.broken-border {
+	border-top-left-radius: 20px;
+	border-bottom-right-radius: 20px;
+	border-top-right-radius: 4px;
+	border-bottom-left-radius: 4px;
 }
 
 @keyframes fadeInUp {

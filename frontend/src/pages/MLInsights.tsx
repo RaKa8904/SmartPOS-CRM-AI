@@ -74,10 +74,10 @@ type AnomalyResponse = {
 /* ═══════════════════════ HELPERS ═══════════════════════ */
 
 const SEGMENT_COLORS: Record<string, string> = {
-  "VIP / High Value": "text-yellow-300 bg-yellow-400/10 border-yellow-400/25",
-  "High Value":       "text-cyan-300 bg-cyan-400/10 border-cyan-400/25",
-  "Regular":          "text-blue-300 bg-blue-400/10 border-blue-400/25",
-  "Low Value":        "text-slate-400 bg-slate-400/10 border-slate-400/25",
+  "VIP / High Value": "text-[#2b2005] bg-[#d19f32] border-[#a07418]",
+  "High Value":       "text-[#eff6ff] bg-[#3b5e7d] border-[#29425a]",
+  "Regular":          "text-[#faf5ff] bg-[#5d4a75] border-[#443657]",
+  "Low Value":        "text-[#f1f5f9] bg-[#64748b] border-[#4b586a]",
 };
 
 const CHURN_COLORS: Record<string, string> = {
@@ -87,10 +87,10 @@ const CHURN_COLORS: Record<string, string> = {
 };
 
 const LTV_COLORS: Record<string, string> = {
-  Platinum: "text-purple-200 bg-purple-500/20 border-purple-400/35",
-  Gold:     "text-yellow-300 bg-yellow-500/15 border-yellow-400/30",
-  Silver:   "text-slate-200 bg-slate-500/15 border-slate-400/30",
-  Bronze:   "text-orange-300 bg-orange-500/15 border-orange-400/30",
+  Platinum: "text-[#faf5ff] bg-[#5d4a75] border-[#443657]",
+  Gold:     "text-[#2b2005] bg-[#d19f32] border-[#a07418]",
+  Silver:   "text-[#eceff3] bg-[#6a7685] border-[#4b586a]",
+  Bronze:   "text-[#faf5ff] bg-[#6f4e37] border-[#553c2b]",
 };
 
 const TREND_ICON: Record<string, string> = { rising: "↑", falling: "↓", stable: "→" };
@@ -113,11 +113,11 @@ function SectionCard({ title, subtitle, children, action }: {
   action?: React.ReactNode;
 }) {
   return (
-    <div className="glass-card rounded-2xl p-5 fade-in">
+    <div className="glass-card broken-border p-6 shadow-[0_0_30px_rgba(255,0,127,0.06)] fade-in">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
-          <h2 className="section-title text-gradient">{title}</h2>
-          {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
+          <h2 className="section-title text-gradient font-cyber font-bold">{title}</h2>
+          {subtitle && <p className="text-xs text-slate-400 mt-1 font-cyber">{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -436,9 +436,9 @@ export default function MLInsights() {
           {filteredSegments.map((c) => (
             <tr key={c.customer_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
               <td className="px-3 py-2">{c.name}</td>
-              <td className="px-3 py-2 text-zinc-400">{c.phone ?? "–"}</td>
-              <td className="px-3 py-2">₹ {fmt(c.total_spent)}</td>
-              <td className="px-3 py-2">{c.total_invoices}</td>
+              <td className="px-3 py-2 text-zinc-400 font-number">{c.phone ?? "–"}</td>
+              <td className="px-3 py-2">₹ <span className="font-number">{fmt(c.total_spent)}</span></td>
+              <td className="px-3 py-2 font-number">{c.total_invoices}</td>
               <td className="px-3 py-2">
                 <Badge label={c.segment || "Low Value"} cls={SEGMENT_COLORS[c.segment] ?? SEGMENT_COLORS["Low Value"]} />
               </td>
@@ -481,8 +481,8 @@ export default function MLInsights() {
             {(["High", "Medium", "Low"] as const).map((lv) => {
               const count = filteredChurn.filter((c) => c.level === lv).length;
               return (
-                <div key={lv} className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${CHURN_COLORS[lv]}`}>
-                  <span className="font-bold text-lg">{count}</span>
+                <div key={lv} className={`flex items-center gap-2 px-3 py-2 rounded-tr-lg rounded-bl-lg border text-sm ${CHURN_COLORS[lv]}`}>
+                  <span className="font-bold text-lg font-number">{count}</span>
                   <span>{lv} Risk</span>
                 </div>
               );
@@ -493,9 +493,9 @@ export default function MLInsights() {
               <tr key={c.customer_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
                 <td className="px-3 py-2">
                   <p className="font-medium">{c.name}</p>
-                  <p className="text-xs text-zinc-500">{c.phone ?? "–"}</p>
+                  <p className="text-xs text-zinc-500 font-number">{c.phone ?? "–"}</p>
                 </td>
-                <td className="px-3 py-2 text-zinc-400 text-sm">{c.recency_days}d ago</td>
+                <td className="px-3 py-2 text-zinc-400 text-sm"><span className="font-number">{c.recency_days}</span>d ago</td>
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
                     <div className="w-16 h-1.5 rounded-full bg-[#1a2a5e] overflow-hidden">
@@ -507,7 +507,7 @@ export default function MLInsights() {
                         }}
                       />
                     </div>
-                    <span className="text-xs font-bold">{c.score}</span>
+                    <span className="text-xs font-bold font-number">{c.score}</span>
                   </div>
                 </td>
                 <td className="px-3 py-2">
@@ -554,13 +554,13 @@ export default function MLInsights() {
             <button
               type="button"
               onClick={() => setLtvTierFilter("All")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-tr-xl rounded-bl-xl border text-sm transition-all duration-150 ${
                 ltvTierFilter === "All"
-                  ? "text-cyan-200 bg-cyan-500/15 border-cyan-400/35"
-                  : "text-slate-300 bg-[#0d1635]/45 border-[#33437f]/35 hover:bg-[#1a2a5e]/45"
+                  ? "text-[#cba16c] bg-[rgba(74,104,105,0.18)] border-[--pos-accent] shadow-sm"
+                  : "text-[#8e909a] bg-[#121214]/45 border-[rgba(74,104,105,0.22)] hover:bg-[#1c1c1f]/45 hover:text-[#e1e2e7]"
               }`}
             >
-              <span className="font-bold text-lg">{ltvData.customers.length}</span>
+              <span className="font-bold text-lg font-number">{ltvData.customers.length}</span>
               <span>All</span>
             </button>
             {(["Platinum", "Gold", "Silver", "Bronze"] as const).map((t) => (
@@ -568,17 +568,17 @@ export default function MLInsights() {
                 key={t}
                 type="button"
                 onClick={() => setLtvTierFilter(t)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition ${LTV_COLORS[t]} ${
-                  ltvTierFilter === t ? "ring-1 ring-cyan-300/70" : "opacity-80 hover:opacity-100"
+                className={`flex items-center gap-2 px-4 py-2 rounded-tr-xl rounded-bl-xl border text-sm transition-all duration-150 ${LTV_COLORS[t]} ${
+                  ltvTierFilter === t ? "ring-2 ring-[--pos-accent] opacity-100 shadow-md" : "opacity-75 hover:opacity-100"
                 }`}
               >
-                <span className="font-bold text-lg">{ltvData.tier_summary[t] ?? 0}</span>
+                <span className="font-bold text-lg font-number">{ltvData.tier_summary[t] ?? 0}</span>
                 <span>{t}</span>
               </button>
             ))}
-            <div className="ml-auto flex items-center gap-1 text-sm text-slate-300 border border-[#33437f]/40 rounded-xl px-3 py-2 bg-[#0d1635]/40">
+            <div className="ml-auto flex items-center gap-1 text-sm text-slate-300 border border-[rgba(255,0,127,0.15)] rounded-tr-xl rounded-bl-xl px-3 py-2 bg-[#04030d]/85 shadow-[0_0_15px_rgba(255,0,127,0.06)]">
               <span className="text-xs text-zinc-400">Total predicted revenue</span>
-              <span className="font-bold text-cyan-300 ml-1">₹ {fmt(ltvData.total_predicted_revenue)}</span>
+              <span className="font-cyber font-bold text-[--pos-accent-pink] neon-glow-magenta ml-1">₹ <span className="font-number">{fmt(ltvData.total_predicted_revenue)}</span></span>
             </div>
           </div>
           <MLTable headers={["Customer", "Invoices", "Avg Order", "Freq/mo", "Predicted LTV", "Tier"]}>
@@ -586,12 +586,12 @@ export default function MLInsights() {
               <tr key={c.customer_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
                 <td className="px-3 py-2">
                   <p className="font-medium">{c.name}</p>
-                  <p className="text-xs text-zinc-500">{c.phone ?? "–"}</p>
+                  <p className="text-xs text-zinc-500 font-number">{c.phone ?? "–"}</p>
                 </td>
-                <td className="px-3 py-2">{c.total_invoices}</td>
-                <td className="px-3 py-2">₹ {fmt(c.avg_order_value)}</td>
-                <td className="px-3 py-2">{c.purchase_freq_per_month}</td>
-                <td className="px-3 py-2 font-bold text-cyan-300">₹ {fmt(c.predicted_ltv)}</td>
+                <td className="px-3 py-2 font-number">{c.total_invoices}</td>
+                <td className="px-3 py-2">₹ <span className="font-number">{fmt(c.avg_order_value)}</span></td>
+                <td className="px-3 py-2 font-number">{c.purchase_freq_per_month}</td>
+                <td className="px-3 py-2 font-bold text-cyan-300">₹ <span className="font-number">{fmt(c.predicted_ltv)}</span></td>
                 <td className="px-3 py-2">
                   <Badge label={c.ltv_tier} cls={LTV_COLORS[c.ltv_tier] ?? ""} />
                 </td>
@@ -605,76 +605,80 @@ export default function MLInsights() {
 
   /* ── 4. Recommendations + Price Prediction ── */
   const renderRecommendations = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       {/* Recommendations */}
-      <SectionCard title="Product Recommendations" subtitle="Association rules scored by lift (higher = stronger pairing)">
-        <ProductSearchSelect
-          products={filteredRecProducts}
-          value={selectedRecId}
-          onChange={setSelectedRecId}
-          searchTerm={recProductSearch}
-          onSearchTermChange={setRecProductSearch}
-          placeholder="Search inside dropdown (name, SKU, ID)..."
-        />
-        {loadingRec ? <p className="text-zinc-400">Loading…</p> :
-          !recData ? <p className="text-zinc-500 text-sm">Select a product above.</p> :
-          (recData.recommendations ?? []).length === 0 ? <p className="text-zinc-500 text-sm">Not enough purchase data yet.</p> : (
-            <div className="space-y-2">
-              {(recData.recommendations ?? []).map((r, i) => (
-                <div key={r.product_id} className="flex items-center gap-3 p-3 bg-[#0d1635]/55 border border-[#33437f]/30 rounded-xl">
-                  <span className="text-xs font-bold text-zinc-500 w-4">#{i + 1}</span>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{r.name}</p>
-                    <p className="text-xs text-zinc-500">{r.sku}</p>
+      <div className="lg:col-span-7">
+        <SectionCard title="Product Recommendations" subtitle="Association rules scored by lift (higher = stronger pairing)">
+          <ProductSearchSelect
+            products={filteredRecProducts}
+            value={selectedRecId}
+            onChange={setSelectedRecId}
+            searchTerm={recProductSearch}
+            onSearchTermChange={setRecProductSearch}
+            placeholder="Search inside dropdown (name, SKU, ID)..."
+          />
+          {loadingRec ? <p className="text-zinc-400">Loading…</p> :
+            !recData ? <p className="text-zinc-500 text-sm">Select a product above.</p> :
+            (recData.recommendations ?? []).length === 0 ? <p className="text-zinc-500 text-sm">Not enough purchase data yet.</p> : (
+              <div className="space-y-2">
+                {(recData.recommendations ?? []).map((r, i) => (
+                  <div key={r.product_id} className="flex items-center gap-3 p-3 bg-[#04030d]/55 border border-[rgba(255,0,127,0.15)] rounded-xl">
+                    <span className="text-xs font-bold text-zinc-500 w-4 font-number">#{i + 1}</span>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{r.name}</p>
+                      <p className="text-xs text-zinc-500 font-number">{r.sku}</p>
+                    </div>
+                    <div className="text-right text-xs font-number">
+                      {r.lift != null ? (
+                        <>
+                          <p className="text-cyan-300 font-bold">Lift {fmtDec(r.lift)}</p>
+                          <p className="text-zinc-500">Conf {fmtDec(r.confidence)}</p>
+                        </>
+                      ) : (
+                        <p className="text-zinc-400">Score {r.score}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right text-xs">
-                    {r.lift != null ? (
-                      <>
-                        <p className="text-cyan-300 font-bold">Lift {fmtDec(r.lift)}</p>
-                        <p className="text-zinc-500">Conf {fmtDec(r.confidence)}</p>
-                      </>
-                    ) : (
-                      <p className="text-zinc-400">Score {r.score}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        }
-      </SectionCard>
+                ))}
+              </div>
+            )
+          }
+        </SectionCard>
+      </div>
 
       {/* Price Prediction */}
-      <SectionCard title="Price Trend Prediction" subtitle="Linear regression on price history to forecast next price">
-        <ProductSearchSelect
-          products={filteredPredProducts}
-          value={selectedPredId}
-          onChange={setSelectedPredId}
-          searchTerm={predProductSearch}
-          onSearchTermChange={setPredProductSearch}
-          placeholder="Search inside dropdown (name, SKU, ID)..."
-        />
-        {loadingPred ? <p className="text-zinc-400">Predicting…</p> :
-          !predData ? <p className="text-zinc-500 text-sm">Select a product above.</p> :
-          typeof predData.predicted_next_price === "number" ? (
-            <div className="space-y-3">
-              <div className="flex gap-4">
-                <div className="flex-1 p-3 bg-[#0d1635]/55 border border-[#33437f]/30 rounded-xl text-center">
-                  <p className="text-xs text-zinc-400 mb-1">Current Price</p>
-                  <p className="text-xl font-bold">₹ {fmtDec(predData.current_price)}</p>
+      <div className="lg:col-span-5 lg:translate-y-8 lg:-ml-4 z-10 transition-all duration-300 hover:translate-y-4 hover:-ml-2">
+        <SectionCard title="Price Trend Prediction" subtitle="Linear regression on price history to forecast next price">
+          <ProductSearchSelect
+            products={filteredPredProducts}
+            value={selectedPredId}
+            onChange={setSelectedPredId}
+            searchTerm={predProductSearch}
+            onSearchTermChange={setPredProductSearch}
+            placeholder="Search inside dropdown (name, SKU, ID)..."
+          />
+          {loadingPred ? <p className="text-zinc-400">Predicting…</p> :
+            !predData ? <p className="text-zinc-500 text-sm">Select a product above.</p> :
+            typeof predData.predicted_next_price === "number" ? (
+              <div className="space-y-3">
+                <div className="flex gap-4">
+                  <div className="flex-1 p-3 bg-[#04030d]/55 border border-[rgba(255,0,127,0.15)] rounded-xl text-center">
+                    <p className="text-xs text-zinc-400 mb-1">Current Price</p>
+                    <p className="text-xl font-bold">₹ <span className="font-number">{fmtDec(predData.current_price)}</span></p>
+                  </div>
+                  <div className="flex-1 p-3 bg-cyan-950/40 border border-cyan-400/25 rounded-xl text-center">
+                    <p className="text-xs text-zinc-400 mb-1 text-[--pos-accent-cyan]">Predicted Next</p>
+                    <p className="text-xl font-bold text-cyan-300">₹ <span className="font-number">{fmtDec(predData.predicted_next_price)}</span></p>
+                  </div>
                 </div>
-                <div className="flex-1 p-3 bg-cyan-950/40 border border-cyan-400/25 rounded-xl text-center">
-                  <p className="text-xs text-zinc-400 mb-1">Predicted Next</p>
-                  <p className="text-xl font-bold text-cyan-300">₹ {fmtDec(predData.predicted_next_price)}</p>
-                </div>
+                <p className="text-xs text-zinc-500">{predData.product_name}</p>
               </div>
-              <p className="text-xs text-zinc-500">{predData.product_name}</p>
-            </div>
-          ) : (
-            <p className="text-zinc-500 text-sm">Not enough price history (need 2+ changes).</p>
-          )
-        }
-      </SectionCard>
+            ) : (
+              <p className="text-zinc-500 text-sm">Not enough price history (need 2+ changes).</p>
+            )
+          }
+        </SectionCard>
+      </div>
     </div>
   );
 
@@ -706,18 +710,18 @@ export default function MLInsights() {
         ) : filteredDemandForecasts.length === 0 ? (
           <p className="text-zinc-500">No matching forecast products.</p>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Product selector list */}
-            <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
+            <div className="lg:col-span-4 space-y-1.5 max-h-[340px] overflow-y-auto pr-1">
               {filteredDemandForecasts.map((f, i) => (
                 <button
                   key={f.product_id}
                   onClick={() => setSelectedForecastIdx(i)}
-                  className={`w-full text-left p-2.5 rounded-xl border text-sm transition ${i === selectedForecastIdx ? "border-cyan-400/50 bg-cyan-950/40" : "border-[#33437f]/30 bg-[#0d1635]/40 hover:bg-[#1a2a5e]/40"}`}
+                  className={`w-full text-left p-2.5 rounded-xl border text-sm transition ${i === selectedForecastIdx ? "border-[--pos-accent-cyan] bg-cyan-950/40" : "border-[rgba(255,0,127,0.15)] bg-[#04030d]/40 hover:bg-[#1a2a5e]/40"}`}
                 >
                   <p className="font-medium truncate">{f.product_name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-zinc-400">{f.avg_daily_sold}/day avg</span>
+                    <span className="text-xs text-zinc-400"><span className="font-number">{f.avg_daily_sold}</span>/day avg</span>
                     <span className={`text-xs font-bold ${TREND_COLOR[f.trend]}`}>{TREND_ICON[f.trend]} {f.trend}</span>
                   </div>
                 </button>
@@ -726,12 +730,12 @@ export default function MLInsights() {
 
             {/* Forecast chart */}
             {selected && (
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-8 lg:translate-y-2 lg:-ml-2 z-10 bg-[#04030d]/50 p-4 border border-[rgba(255,0,127,0.15)] rounded-tr-3xl rounded-bl-3xl shadow-[0_0_15px_rgba(255,0,127,0.05)]">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="font-semibold text-slate-100">{selected.product_name}</p>
                     <p className="text-xs text-zinc-400">
-                      7-day forecast: <span className="text-cyan-300 font-bold">{selected.predicted_7d_total} units</span>
+                      7-day forecast: <span className="text-cyan-300 font-bold"><span className="font-number">{selected.predicted_7d_total}</span> units</span>
                       &nbsp;|&nbsp;
                       Trend: <span className={`font-bold ${TREND_COLOR[selected.trend]}`}>{TREND_ICON[selected.trend]} {selected.trend}</span>
                     </p>
@@ -793,9 +797,9 @@ export default function MLInsights() {
                   ["Products Scanned", summary.products_scanned, "text-slate-300"],
                   ["Price Flags",      summary.price_flags,      "text-amber-300"],
                 ] as [string, number, string][]).map(([label, val, cls]) => (
-                  <div key={label} className="p-3 rounded-xl border border-[#33437f]/35 bg-[#0d1635]/40">
-                    <p className={`text-xl font-bold ${cls}`}>{val}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
+                  <div key={label} className="p-3 rounded-tr-xl rounded-bl-xl border border-[rgba(255,0,127,0.15)] bg-[#04030d]/50">
+                    <p className={`text-xl font-bold font-number ${cls}`}>{val}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5 font-cyber">{label}</p>
                   </div>
                 ))}
               </div>
@@ -810,16 +814,16 @@ export default function MLInsights() {
                 <MLTable headers={["Invoice #", "Amount", "vs Mean", "Z-Score", "Customer", "Date"]}>
                   {anomalyData.invoice_anomalies.map((a) => (
                     <tr key={a.invoice_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
-                      <td className="px-3 py-2">#{a.invoice_id}</td>
-                      <td className="px-3 py-2 font-bold text-red-300">₹ {fmt(a.total_amount)}</td>
-                      <td className="px-3 py-2 text-zinc-400 text-xs">avg ₹ {fmt(a.population_mean)}</td>
+                      <td className="px-3 py-2 font-number">#{a.invoice_id}</td>
+                      <td className="px-3 py-2 font-bold text-red-300">₹ <span className="font-number">{fmt(a.total_amount)}</span></td>
+                      <td className="px-3 py-2 text-zinc-400 text-xs">avg ₹ <span className="font-number">{fmt(a.population_mean)}</span></td>
                       <td className="px-3 py-2">
-                        <span className={`font-bold text-sm ${Math.abs(a.z_score) >= 3 ? "text-red-400" : "text-amber-400"}`}>
+                        <span className={`font-bold text-sm font-number ${Math.abs(a.z_score) >= 3 ? "text-red-400" : "text-amber-400"}`}>
                           {a.z_score > 0 ? "+" : ""}{a.z_score}σ
                         </span>
                       </td>
                       <td className="px-3 py-2 text-zinc-300">{a.customer_name}</td>
-                      <td className="px-3 py-2 text-zinc-500 text-xs">{a.created_at}</td>
+                      <td className="px-3 py-2 text-zinc-500 text-xs font-number">{a.created_at}</td>
                     </tr>
                   ))}
                 </MLTable>
@@ -836,10 +840,10 @@ export default function MLInsights() {
                   {anomalyData.price_anomalies.map((a) => (
                     <tr key={a.product_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
                       <td className="px-3 py-2 font-medium">{a.name}</td>
-                      <td className="px-3 py-2 text-amber-300 font-bold">₹ {fmt(a.price)}</td>
-                      <td className="px-3 py-2 text-zinc-400">₹ {fmt(a.avg_category_price)}</td>
+                      <td className="px-3 py-2 text-amber-300 font-bold">₹ <span className="font-number">{fmt(a.price)}</span></td>
+                      <td className="px-3 py-2 text-zinc-400">₹ <span className="font-number">{fmt(a.avg_category_price)}</span></td>
                       <td className="px-3 py-2">
-                        <span className={`font-bold text-sm ${Math.abs(a.z_score) >= 3 ? "text-red-400" : "text-amber-400"}`}>
+                        <span className={`font-bold text-sm font-number ${Math.abs(a.z_score) >= 3 ? "text-red-400" : "text-amber-400"}`}>
                           {a.z_score > 0 ? "+" : ""}{a.z_score}σ
                         </span>
                       </td>
@@ -866,10 +870,10 @@ export default function MLInsights() {
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-tr-lg rounded-bl-lg rounded-tl-sm rounded-br-sm text-sm font-cyber font-semibold border transition-all duration-150 ${
               activeTab === t.key
-                ? "bg-cyan-500/20 border-cyan-400/50 text-cyan-200"
-                : "border-[#33437f]/40 text-zinc-400 hover:bg-[#1a2a5e]/40 hover:text-zinc-200"
+                ? "bg-[rgba(74,104,105,0.18)] border-[--pos-accent] text-[--pos-accent-copper] shadow-md"
+                : "border-[rgba(74,104,105,0.12)] text-[#8e909a] hover:bg-white/5 hover:text-[#e1e2e7]"
             }`}
           >
             <span className="text-base leading-none">{t.icon}</span>
