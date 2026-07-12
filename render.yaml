@@ -21,9 +21,8 @@ services:
           property: host
 
   # Frontend Static Site
-  - type: web
+  - type: static
     name: smartpos-frontend
-    env: static
     buildCommand: npm run build
     publishPath: dist
     rootDir: frontend
