@@ -18,6 +18,7 @@ services:
       - key: ALLOWED_ORIGINS
         fromService:
           name: smartpos-frontend
+          type: web
           property: host
 
   # Frontend Static Site
@@ -31,6 +32,7 @@ services:
       - key: VITE_API_URL
         fromService:
           name: smartpos-backend
+          type: web
           property: host
 
 databases:
