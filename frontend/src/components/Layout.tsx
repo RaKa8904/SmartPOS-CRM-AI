@@ -122,22 +122,43 @@ export default function Layout() {
 
       {/* ── Sidebar ─────────────────────────────────────────── */}
       <aside
-        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r border-[rgba(74,104,105,0.25)]
-                    bg-[#121214] ${collapsed ? "w-17" : "w-60"}`}
+        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r bg-[#121214] 
+                    ${collapsed ? "w-0 border-r-transparent overflow-hidden" : "w-60 border-r-[rgba(74,104,105,0.25)]"}`}
       >
         {/* Brand */}
-        <div className={`flex items-center gap-3 px-3 py-4 border-b border-[rgba(74,104,105,0.25)] ${collapsed ? "justify-center" : ""}`}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#4a6869] to-[#cba16c] shadow-md">
-            <SvgIcon className="h-4 w-4 text-white stroke-2">
-              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-            </SvgIcon>
-          </div>
-          {!collapsed && (
+        <div className="flex items-center justify-between px-3 py-4 border-b border-[rgba(74,104,105,0.25)]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#4a6869] to-[#cba16c] shadow-md">
+              <SvgIcon className="h-4 w-4 text-white stroke-2">
+                <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+              </SvgIcon>
+            </div>
             <div className="leading-[1.2] min-w-0">
               <p className="text-[13px] font-cyber text-gradient font-bold tracking-wide">SmartPOS</p>
               <p className="text-[9px] text-slate-500 tracking-widest uppercase font-cyber">CRM · AI · POS</p>
             </div>
-          )}
+          </div>
+          {/* Collapse button inside sidebar */}
+          <button
+            type="button"
+            onClick={() => setCollapsed(true)}
+            className="group flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-white/8 hover:text-[--pos-accent] transition duration-200"
+            title="Collapse sidebar"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4.5 w-4.5 stroke-2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <line x1="9" y1="3" x2="9" y2="21" className="transition-transform duration-300 group-hover:translate-x-0.5" />
+              <path d="M13 15l-3-3 3-3" className="transition-all duration-300 opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0" />
+            </svg>
+          </button>
         </div>
 
         {/* Groups */}
@@ -232,18 +253,41 @@ export default function Layout() {
         {/* Topbar */}
         <header className="flex items-center justify-between px-5 py-3.5 border-b border-[rgba(74,104,105,0.25)] bg-[#121214]/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            {/* Sidebar toggle */}
-            <button
-              type="button"
-              onClick={() => setCollapsed((v) => !v)}
-              className="hidden md:inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:bg-white/8 hover:text-[--pos-accent] transition"
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 stroke-2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <path d="M9 3v18"/>
-              </svg>
-            </button>
+            {/* Morphing Logo / Expand Button when collapsed */}
+            {collapsed && (
+              <button
+                type="button"
+                onClick={() => setCollapsed(false)}
+                className="group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-200 hover:bg-white/8 mr-1"
+                title="Expand sidebar"
+              >
+                {/* Logo Icon (default visible, fades out on hover) */}
+                <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 group-hover:opacity-0 group-hover:scale-75">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#4a6869] to-[#cba16c] shadow-md">
+                    <SvgIcon className="h-4 w-4 text-white stroke-2">
+                      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+                    </SvgIcon>
+                  </div>
+                </div>
+
+                {/* Animated Expand Panel Icon (revealed on hover) */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 scale-75 transition-all duration-300 group-hover:opacity-100 group-hover:scale-100">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5 stroke-2 text-[--pos-accent]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <line x1="9" y1="3" x2="9" y2="21" className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                    <path d="M14 9l3 3-3 3" className="transition-all duration-300 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0" />
+                  </svg>
+                </div>
+              </button>
+            )}
             <h1 className="text-[15px] font-cyber text-[#e1e2e7] font-bold tracking-wide">SmartPOS Console</h1>
           </div>
 
