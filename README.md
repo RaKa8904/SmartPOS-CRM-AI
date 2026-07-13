@@ -313,6 +313,10 @@ npm run build
 - `/ml` segmentation/churn/ltv/recommendations/forecast/anomalies
 - `/users`, `/audit-logs`, `/user-activity` admin modules
 
+## Trial Account 
+Email Address : arjun.mehta.manager@smartpos.demo
+Password : Manager123
+
 ## License
 
 This project is distributed under the terms in [LICENSE](LICENSE).
