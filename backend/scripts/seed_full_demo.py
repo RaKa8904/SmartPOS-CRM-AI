@@ -240,7 +240,7 @@ def nuke_business_data(db) -> None:
     print("  Clearing customers …")
     db.query(Customer).delete(synchronize_session=False)
     db.commit()
-    print("  ✓ All business data cleared.\n")
+    print("  [SUCCESS] All business data cleared.\n")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -291,7 +291,7 @@ def seed_categories_and_products(db) -> Tuple[Dict[str, Category], Dict[str, Pro
         db.flush()
         product_map[sku] = p
 
-    print(f"  ✓ {len(category_map)} categories, {len(product_map)} products seeded.")
+    print(f"  [SUCCESS] {len(category_map)} categories, {len(product_map)} products seeded.")
     return category_map, product_map
 
 
@@ -306,7 +306,7 @@ def seed_customers(db, now_utc: datetime) -> Dict[str, Customer]:
         db.add(c)
         db.flush()
         customer_map[cname] = c
-    print(f"  ✓ {len(customer_map)} customers seeded.")
+    print(f"  [SUCCESS] {len(customer_map)} customers seeded.")
     return customer_map
 
 
@@ -327,7 +327,7 @@ def seed_price_history(db, product_map: Dict[str, Product], now_utc: datetime) -
         ))
         count += 1
     db.flush()
-    print(f"  ✓ {count} price history entries seeded.")
+    print(f"  [SUCCESS] {count} price history entries seeded.")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -465,7 +465,7 @@ def seed_invoices(db, product_map: Dict[str, Product], customer_map: Dict[str, C
             ))
 
     db.flush()
-    print(f"  ✓ {total_invoices} invoices with line items seeded across 30 days.")
+    print(f"  [SUCCESS] {total_invoices} invoices with line items seeded across 30 days.")
     return total_invoices
 
 
@@ -593,7 +593,7 @@ def seed_user_activity(db, users_by_email: Dict[str, User], now_utc: datetime) -
         user_obj.is_active = True
 
     db.flush()
-    print("  ✓ User activity, login events, admin actions, and refunds seeded.")
+    print("  [SUCCESS] User activity, login events, admin actions, and refunds seeded.")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -719,7 +719,7 @@ def seed_notifications(db, product_map: Dict[str, Product], customer_map: Dict[s
             ))
 
     db.flush()
-    print(f"  ✓ {len(templates)} templates, 3 campaigns, 13+ notifications seeded.")
+    print(f"  [SUCCESS] {len(templates)} templates, 3 campaigns, 13+ notifications seeded.")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -744,7 +744,7 @@ def create_inventory_shortages(db, product_map: Dict[str, Product]) -> None:
     db.flush()
     oos = sum(1 for s in shortage_map.values() if s == 0)
     low = sum(1 for s in shortage_map.values() if 0 < s <= 10)
-    print(f"  ✓ Inventory shortages set: {oos} out-of-stock, {low} low-stock.")
+    print(f"  [SUCCESS] Inventory shortages set: {oos} out-of-stock, {low} low-stock.")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -758,28 +758,28 @@ def main():
         print("  SmartPOS CRM AI – Full 30-Day Demo Seeder")
         print("=" * 60)
 
-        print("\n[1/8] Ensuring staff users …")
+        print("\n[1/8] Ensuring staff users...")
         users_by_email = ensure_staff_users(db)
 
-        print("[2/8] Clearing old business data …")
+        print("[2/8] Clearing old business data...")
         nuke_business_data(db)
 
-        print("[3/8] Seeding categories & products …")
+        print("[3/8] Seeding categories & products...")
         category_map, product_map = seed_categories_and_products(db)
 
-        print("[4/8] Seeding customers …")
+        print("[4/8] Seeding customers...")
         customer_map = seed_customers(db, now_utc)
 
-        print("[5/8] Seeding price history …")
+        print("[5/8] Seeding price history...")
         seed_price_history(db, product_map, now_utc)
 
-        print("[6/8] Seeding invoices & line items (30 days) …")
+        print("[6/8] Seeding invoices & line items (30 days)...")
         total_inv = seed_invoices(db, product_map, customer_map, now_utc)
 
-        print("[7/8] Seeding user activity & audit logs …")
+        print("[7/8] Seeding user activity & audit logs...")
         seed_user_activity(db, users_by_email, now_utc)
 
-        print("[8/8] Seeding notifications & creating inventory shortages …")
+        print("[8/8] Seeding notifications & creating inventory shortages...")
         seed_notifications(db, product_map, customer_map, now_utc)
         create_inventory_shortages(db, product_map)
 
@@ -817,7 +817,7 @@ def main():
 
     except Exception as e:
         db.rollback()
-        print(f"\n  ✗ ERROR: {e}")
+        print(f"\n  [ERROR] {e}")
         raise
     finally:
         db.close()

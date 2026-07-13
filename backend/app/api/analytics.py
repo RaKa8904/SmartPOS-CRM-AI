@@ -437,3 +437,47 @@ def dashboard_v2(
             "projected_eod": projected_eod,
         },
     }
+
+
+@router.post("/seed-demo-data")
+def seed_demo_data(db: Session = Depends(get_db)):
+    try:
+        import sys
+        from pathlib import Path
+        from datetime import datetime, timezone
+        from fastapi import HTTPException
+
+        backend_root = Path(__file__).resolve().parents[2]
+        if str(backend_root) not in sys.path:
+            sys.path.insert(0, str(backend_root))
+
+        from scripts.seed_full_demo import (
+            nuke_business_data,
+            ensure_staff_users,
+            seed_categories_and_products,
+            seed_customers,
+            seed_price_history,
+            seed_invoices,
+            seed_user_activity,
+            seed_notifications,
+            create_inventory_shortages,
+        )
+
+        now_utc = datetime.now(timezone.utc)
+        users_by_email = ensure_staff_users(db)
+        nuke_business_data(db)
+        category_map, product_map = seed_categories_and_products(db)
+        customer_map = seed_customers(db, now_utc)
+        seed_price_history(db, product_map, now_utc)
+        seed_invoices(db, product_map, customer_map, now_utc)
+        seed_user_activity(db, users_by_email, now_utc)
+        seed_notifications(db, product_map, customer_map, now_utc)
+        create_inventory_shortages(db, product_map)
+
+        db.commit()
+        return {"status": "success", "message": "Demo data successfully seeded"}
+    except Exception as e:
+        db.rollback()
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=str(e))
+
