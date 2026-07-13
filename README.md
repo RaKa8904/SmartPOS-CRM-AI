@@ -161,11 +161,19 @@ Recent UX additions in ML Insights:
 
 ### Auth and RBAC
 
-- JWT access and refresh token model
+- Hardened JWT access and refresh token session model
 - Role-based access: admin, manager, cashier
 - Invite-token registration for non-first users
 - Account lockout after failed login attempts
 - Session revocation and token version enforcement
+
+### Hardened Session Architecture (XSS Mitigation)
+
+To prevent session hijacking via Cross-Site Scripting (XSS) attacks, the authentication architecture uses a secure token splitting model:
+- **In-Memory Access Tokens**: The short-lived access token is stored strictly in memory (React context/state), never written to `localStorage` or `sessionStorage`.
+- **HttpOnly Cookies**: The long-lived refresh token is stored in an `HttpOnly`, `Secure`, `SameSite=None` cookie. This completely hides it from client-side scripts, protecting it from XSS extraction.
+- **Silent Refresh**: On application load (or tab open), the client silently requests a new access token from the `/auth/refresh` endpoint in the background using the HttpOnly cookie.
+- **Secure Logout**: A POST `/auth/logout` endpoint clears the HttpOnly cookie and marks the session as revoked (`session_revoked = True` and increments `token_version` in PostgreSQL) for absolute token invalidation.
 
 ### Security Hardening Implemented
 
@@ -175,7 +183,6 @@ Recent UX additions in ML Insights:
 - Security headers middleware enabled:
   - `X-Content-Type-Options: nosniff`
   - `X-Frame-Options: DENY`
-  - `X-XSS-Protection: 1; mode=block`
   - `Referrer-Policy: strict-origin-when-cross-origin`
   - `Permissions-Policy: geolocation=(), microphone=()`
   - `Strict-Transport-Security`
