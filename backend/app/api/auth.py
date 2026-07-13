@@ -233,7 +233,7 @@ def login(request: Request, payload: LoginRequest, response: Response, db: Sessi
         value=refresh_token,
         httponly=True,
         secure=True,
-        samesite="lax",
+        samesite="none",
         max_age=30 * 24 * 3600,  # 30 days
     )
 
@@ -293,7 +293,7 @@ def refresh(
         value=new_refresh,
         httponly=True,
         secure=True,
-        samesite="lax",
+        samesite="none",
         max_age=30 * 24 * 3600,  # 30 days
     )
 
@@ -462,7 +462,7 @@ def logout(
         key="refresh_token",
         httponly=True,
         secure=True,
-        samesite="lax",
+        samesite="none",
     )
     user = db.query(User).filter(User.email == current_user["email"]).first()
     if user:
