@@ -6,8 +6,17 @@ const getBaseURL = () => {
   return url.startsWith("http") ? url : `https://${url}`;
 };
 
+// In-memory token storage (XSS protected)
+let _inMemoryAccessToken: string | null = null;
+
+export const getAccessToken = () => _inMemoryAccessToken;
+export const setAccessToken = (token: string | null) => {
+  _inMemoryAccessToken = token;
+};
+
 export const api = axios.create({
   baseURL: getBaseURL(),
+  withCredentials: true, // Enable sending HttpOnly cookies
 });
 
 const isAuthPath = (url?: string) => {
@@ -18,39 +27,25 @@ const isAuthPath = (url?: string) => {
 let refreshPromise: Promise<string | null> | null = null;
 
 async function tryRefreshAccessToken(): Promise<string | null> {
-  const refreshToken = localStorage.getItem("refresh_token");
-  if (!refreshToken) return null;
-
   try {
-    const res = await axios.post(`${getBaseURL()}/auth/refresh`, {
-      refresh_token: refreshToken,
+    // Call refresh endpoint with credentials (cookie is sent automatically)
+    const res = await axios.post(`${getBaseURL()}/auth/refresh`, {}, {
+      withCredentials: true,
     });
 
     const nextAccess = res.data?.access_token as string | undefined;
-    const nextRefresh = (res.data?.refresh_token as string | undefined) ?? refreshToken;
-
     if (!nextAccess) return null;
 
-    localStorage.setItem("access_token", nextAccess);
-    localStorage.setItem("refresh_token", nextRefresh);
+    setAccessToken(nextAccess);
     return nextAccess;
   } catch {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("token");
+    setAccessToken(null);
     return null;
   }
 }
 
 api.interceptors.request.use((config) => {
-  // Backward compatibility: support old key "token" and migrate it.
-  const legacyToken = localStorage.getItem("token");
-  if (legacyToken && !localStorage.getItem("access_token")) {
-    localStorage.setItem("access_token", legacyToken);
-    localStorage.removeItem("token");
-  }
-
-  const token = localStorage.getItem("access_token");
+  const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -84,10 +79,8 @@ api.interceptors.response.use(
       }
     }
 
-    if (status === 401) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("token");
+    if (status === 401 && !isAuthPath(originalRequest?.url)) {
+      setAccessToken(null);
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }

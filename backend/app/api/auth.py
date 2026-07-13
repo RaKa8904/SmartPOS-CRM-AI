@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 
@@ -158,7 +158,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.post("/login")
 @limiter.limit("10/minute")
-def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
+def login(request: Request, payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
     email = payload.email.lower()
     password = payload.password
 
@@ -228,9 +228,17 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
         {"sub": user.email, "role": user.role, "name": user.username, "ver": token_version}
     )
 
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=30 * 24 * 3600,  # 30 days
+    )
+
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "token_type": "bearer",
         "role": user.role,
         "username": user.username,
@@ -238,9 +246,21 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
 
 
 @router.post("/refresh")
-def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
+def refresh(
+    request: Request,
+    response: Response,
+    payload: RefreshRequest | None = None,
+    db: Session = Depends(get_db),
+):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token and payload:
+        refresh_token = payload.refresh_token
+
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+
     try:
-        token_payload = decode_refresh_token(payload.refresh_token)
+        token_payload = decode_refresh_token(refresh_token)
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
@@ -268,9 +288,17 @@ def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
         {"sub": user.email, "role": user.role, "name": user.username, "ver": int(user.token_version or 0)}
     )
 
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=30 * 24 * 3600,  # 30 days
+    )
+
     return {
         "access_token": new_access,
-        "refresh_token": new_refresh,
         "token_type": "bearer",
         "role": user.role,
         "username": user.username,
@@ -421,3 +449,25 @@ def confirm_password_reset(payload: PasswordResetConfirmRequest, db: Session = D
     db.commit()
 
     return {"message": "Password reset successful. Please login again."}
+
+
+@router.post("/logout")
+def logout(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    response.delete_cookie(
+        key="refresh_token",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+    )
+    user = db.query(User).filter(User.email == current_user["email"]).first()
+    if user:
+        user.session_revoked = True
+        user.token_version = int(user.token_version or 0) + 1
+        db.commit()
+
+    return {"message": "Logged out successfully"}
