@@ -103,12 +103,12 @@ export default function Products() {
 
   /* stock badge helper */
   const stockBadge = (s: number) => {
-    if (s <= 0) return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-400/15">Out of Stock</span>;
-    if (s <= 10) return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-400/15">{s} left</span>;
-    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-400/15">{s} in stock</span>;
+    if (s <= 0) return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 border border-rose-400/15">Out of Stock</span>;
+    if (s <= 10) return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border border-amber-400/15">{s} left</span>;
+    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-400/15">{s} in stock</span>;
   };
 
-  if (loading) return <p className="text-zinc-400">Loading…</p>;
+  if (loading) return <p className="text-[var(--pos-muted)]">Loading…</p>;
 
   /* summary stats */
   const totalProducts = products.length;
@@ -123,7 +123,7 @@ export default function Products() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-gradient">Product Inventory</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Manage your product catalog, stock levels, and pricing</p>
+          <p className="text-xs text-[var(--pos-muted)] mt-0.5">Manage your product catalog, stock levels, and pricing</p>
         </div>
         <button
           onClick={() => setShowAddForm((v) => !v)}
@@ -158,9 +158,9 @@ export default function Products() {
           <div key={stat.label} className={`rounded-2xl border bg-gradient-to-br ${stat.color} p-4 backdrop-blur-sm`}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-base">{stat.icon}</span>
-              <span className="text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">{stat.label}</span>
+              <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--pos-muted)] font-semibold">{stat.label}</span>
             </div>
-            <p className="text-xl font-bold text-slate-100">{stat.value}</p>
+            <p className="text-xl font-bold text-[var(--pos-text)]">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -224,7 +224,7 @@ export default function Products() {
           className="input-surface text-sm"
         />
         {search && (
-          <p className="text-[11px] text-slate-500 mt-2">{filtered.length} result{filtered.length !== 1 ? "s" : ""} for "{search}"</p>
+          <p className="text-[11px] text-[var(--pos-muted)] mt-2">{filtered.length} result{filtered.length !== 1 ? "s" : ""} for "{search}"</p>
         )}
       </div>
 
@@ -233,43 +233,43 @@ export default function Products() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#18275a]/60 border-b border-[#33437f]/40">
-                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">Product</th>
-                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold hidden md:table-cell">SKU</th>
-                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold hidden lg:table-cell">Category</th>
-                <th className="py-3.5 px-4 text-right text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">Price</th>
-                <th className="py-3.5 px-4 text-right text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold hidden sm:table-cell">GST</th>
-                <th className="py-3.5 px-4 text-center text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">Stock</th>
-                <th className="py-3.5 px-4 text-center text-[10px] uppercase tracking-[0.12em] text-slate-400 font-semibold">Actions</th>
+              <tr className="bg-[var(--pos-border-glow)] border-b border-[var(--pos-border)]">
+                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-[var(--pos-muted)] font-semibold">Product</th>
+                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-[var(--pos-muted)] font-semibold hidden md:table-cell">SKU</th>
+                <th className="py-3.5 px-4 text-left text-[10px] uppercase tracking-[0.12em] text-[var(--pos-muted)] font-semibold hidden lg:table-cell">Category</th>
+                <th className="py-3.5 px-4 text-right text-[10px] uppercase tracking-[0.12em] text-[var(--pos-muted)] font-semibold">Price</th>
+                <th className="py-3.5 px-4 text-right text-[10px] uppercase tracking-[0.12em] text-[var(--pos-muted)] font-semibold hidden sm:table-cell">GST</th>
+                <th className="py-3.5 px-4 text-center text-[10px] uppercase tracking-[0.12em] text-[var(--pos-muted)] font-semibold">Stock</th>
+                <th className="py-3.5 px-4 text-center text-[10px] uppercase tracking-[0.12em] text-[var(--pos-muted)] font-semibold">Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-500 text-sm">No products found.</td>
+                  <td colSpan={7} className="text-center py-12 text-[var(--pos-muted)] text-sm">No products found.</td>
                 </tr>
               )}
 
               {filtered.map((p) => (
                 <tr
                   key={p.id}
-                  className={`border-b border-white/5 transition hover:bg-[#1f3370]/15 ${p.stock <= 0 ? "opacity-60" : ""}`}
+                  className={`border-b border-[var(--pos-border)] transition hover:bg-[var(--pos-border-glow)] ${p.stock <= 0 ? "opacity-60" : ""}`}
                 >
                   <td className="px-4 py-3.5">
-                    <p className="font-medium text-slate-100 text-[13px]">{p.name}</p>
-                    <p className="text-[10px] text-slate-500 md:hidden">{p.sku}</p>
+                    <p className="font-medium text-[var(--pos-text)] text-[13px]">{p.name}</p>
+                    <p className="text-[10px] text-[var(--pos-muted)] md:hidden">{p.sku}</p>
                   </td>
                   <td className="px-4 py-3.5 hidden md:table-cell">
-                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-[11px] font-mono text-slate-400">{p.sku}</span>
+                    <span className="px-2 py-0.5 rounded-md bg-[var(--pos-border-glow)] text-[11px] font-mono text-[var(--pos-muted)]">{p.sku}</span>
                   </td>
-                  <td className="px-4 py-3.5 text-slate-400 text-xs hidden lg:table-cell">
-                    {p.category_id && categoryMap[p.category_id] ? categoryMap[p.category_id] : <span className="text-slate-600">–</span>}
+                  <td className="px-4 py-3.5 text-[var(--pos-muted)] text-xs hidden lg:table-cell">
+                    {p.category_id && categoryMap[p.category_id] ? categoryMap[p.category_id] : <span className="text-[var(--pos-muted)] opacity-60">–</span>}
                   </td>
                   <td className="px-4 py-3.5 text-right">
-                    <span className="text-cyan-300 font-semibold">₹{p.price}</span>
+                    <span className="text-cyan-600 dark:text-cyan-300 font-semibold">₹{p.price}</span>
                   </td>
-                  <td className="px-4 py-3.5 text-right text-slate-500 text-xs hidden sm:table-cell">{p.tax_rate}%</td>
+                  <td className="px-4 py-3.5 text-right text-[var(--pos-muted)] text-xs hidden sm:table-cell">{p.tax_rate}%</td>
                   <td className="px-4 py-3.5 text-center">{stockBadge(p.stock)}</td>
 
                   <td className="px-4 py-3.5">
@@ -280,10 +280,10 @@ export default function Products() {
                           type="number"
                           value={restockMap[p.id] || ""}
                           onChange={(e) =>
-                            setRestockMap((prev) => ({ ...prev, [p.id]: Number(e.target.value) }))
+                              setRestockMap((prev) => ({ ...prev, [p.id]: Number(e.target.value) }))
                           }
                           placeholder="Qty"
-                          className="w-14 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-400/40"
+                          className="w-14 bg-[var(--pos-surface)] border border-[var(--pos-border)] rounded-lg px-2 py-1.5 text-xs text-[var(--pos-text)] placeholder-[var(--pos-muted)] focus:outline-none focus:border-[var(--pos-accent)]"
                         />
                         <button
                           onClick={() => restockProduct(p.id)}

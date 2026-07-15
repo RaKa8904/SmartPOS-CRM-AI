@@ -374,44 +374,44 @@ export default function Billing() {
 
           {/* Customer selector – custom searchable dropdown */}
           <div className="glass-card rounded-2xl p-4 relative z-10">
-            <label className="text-[10px] uppercase tracking-[0.14em] text-slate-400 font-semibold mb-2 block">Customer</label>
+            <label className="text-[10px] uppercase tracking-[0.14em] text-[var(--pos-muted)] font-semibold mb-2 block">Customer</label>
             <div className="relative" ref={customerDropdownRef}>
               <button
                 type="button"
                 onClick={() => { setCustomerDropdownOpen((v) => !v); setCustomerSearch(""); }}
                 className="input-surface text-sm w-full text-left flex items-center justify-between gap-2"
               >
-                <span className={selectedCustomerName ? "text-slate-100" : "text-slate-500"}>
+                <span className={selectedCustomerName ? "text-[var(--pos-text)] font-semibold" : "text-[var(--pos-muted)]"}>
                   {selectedCustomerName || "– Select Customer –"}
                 </span>
-                <svg viewBox="0 0 24 24" className={`h-4 w-4 text-slate-500 transition-transform ${customerDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                <svg viewBox="0 0 24 24" className={`h-4 w-4 text-[var(--pos-muted)] transition-transform ${customerDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
               </button>
 
               {customerDropdownOpen && (
-                <div className="absolute z-50 left-0 right-0 mt-1 rounded-xl border border-[#33437f]/50 bg-[#0b1130]/98 backdrop-blur-xl shadow-2xl overflow-hidden">
+                <div className="absolute z-50 left-0 right-0 mt-1 rounded-xl border border-[var(--pos-border)] bg-[var(--pos-surface)] backdrop-blur-xl shadow-2xl overflow-hidden">
                   {/* Search inside dropdown */}
-                  <div className="p-2 border-b border-white/5">
+                  <div className="p-2 border-b border-[var(--pos-border)]">
                       <input
                         type="text"
                         placeholder="Search customers…"
                         value={customerSearch}
                         onChange={(e) => setCustomerSearch(e.target.value)}
-                        className="w-full bg-white/5 border border-white/8 rounded-lg text-xs text-slate-200 placeholder-slate-500 py-2 px-3 focus:outline-none focus:border-cyan-400/40"
+                        className="w-full bg-[var(--pos-border-glow)] border border-[var(--pos-border)] rounded-lg text-xs text-[var(--pos-text)] placeholder-[var(--pos-muted)] py-2 px-3 focus:outline-none focus:border-[var(--pos-accent)]"
                         autoFocus
                       />
                   </div>
                   {/* Options list */}
                   <div className="max-h-48 overflow-y-auto">
                     {filteredCustomers.length === 0 ? (
-                      <p className="text-xs text-slate-500 text-center py-4">No customers found</p>
+                      <p className="text-xs text-[var(--pos-muted)] text-center py-4">No customers found</p>
                     ) : (
                       filteredCustomers.map((c) => (
                         <button
                           key={c.id}
                           type="button"
                           onClick={() => { setCustomerId(c.id); setCustomerDropdownOpen(false); setCustomerSearch(""); }}
-                          className={`w-full text-left px-3 py-2 text-xs transition hover:bg-cyan-500/10 ${
-                            customerId === c.id ? "bg-cyan-500/15 text-cyan-200 font-semibold" : "text-slate-300"
+                          className={`w-full text-left px-3 py-2 text-xs transition hover:bg-[var(--pos-border-glow)] ${
+                            customerId === c.id ? "bg-[rgba(74,104,105,0.14)] text-[var(--pos-text)] font-semibold" : "text-[var(--pos-muted)]"
                           }`}
                         >
                           {c.name}
@@ -427,36 +427,36 @@ export default function Billing() {
           {/* Cart */}
           <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                <SvgIcon d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" className="text-cyan-400" />
+              <h3 className="text-sm font-bold text-[var(--pos-text)] flex items-center gap-2">
+                <SvgIcon d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" className="text-cyan-600 dark:text-cyan-400" />
                 Cart
                 {cart.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-cyan-500/25 text-cyan-300 font-bold">{cart.length}</span>
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 font-bold">{cart.length}</span>
                 )}
               </h3>
               {cart.length > 0 && (
-                <button onClick={() => setCart([])} className="text-[10px] text-rose-400 hover:text-rose-300 transition uppercase tracking-wider font-semibold">Clear all</button>
+                <button onClick={() => setCart([])} className="text-[10px] text-rose-600 dark:text-rose-400 hover:opacity-80 transition uppercase tracking-wider font-semibold">Clear all</button>
               )}
             </div>
 
             <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
               {cart.length === 0 && (
-                <div className="text-center py-8 text-slate-500">
+                <div className="text-center py-8 text-[var(--pos-muted)]">
                   <SvgIcon d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18" className="h-8 w-8 mx-auto mb-2 opacity-40" />
                   <p className="text-xs">Add products to start billing</p>
                 </div>
               )}
               {cart.map((i) => (
-                <div key={i.product_id} className="group flex items-center gap-3 bg-[#121214]/80 p-2.5 rounded-xl border border-[rgba(74,104,105,0.25)] hover:border-[--pos-accent] transition">
+                <div key={i.product_id} className="group flex items-center gap-3 bg-[var(--pos-border-glow)] p-2.5 rounded-xl border border-[var(--pos-border)] hover:border-[--pos-accent] transition">
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-[#e1e2e7] truncate">{i.name}</p>
-                    <p className="text-[11px] text-[#8e909a]"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{i.price}</span> × <span className="font-number">{i.qty}</span> = <span className="text-[#e1e2e7] font-semibold"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{(i.price * i.qty).toFixed(2)}</span></span></p>
+                    <p className="text-[13px] font-medium text-[var(--pos-text)] truncate">{i.name}</p>
+                    <p className="text-[11px] text-[var(--pos-muted)]"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{i.price}</span> × <span className="font-number">{i.qty}</span> = <span className="text-[var(--pos-text)] font-semibold"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{(i.price * i.qty).toFixed(2)}</span></span></p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => decreaseQty(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold transition">−</button>
-                    <span className="text-xs w-6 text-center font-bold text-white font-number">{i.qty}</span>
-                    <button onClick={() => increaseQty(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold transition">+</button>
-                    <button onClick={() => removeItem(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 text-xs transition ml-1">✕</button>
+                    <button onClick={() => decreaseQty(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-[var(--pos-border-glow)] hover:bg-[var(--pos-border)] text-[var(--pos-text)] text-xs font-bold transition">−</button>
+                    <span className="text-xs w-6 text-center font-bold text-[var(--pos-text)] font-number">{i.qty}</span>
+                    <button onClick={() => increaseQty(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-[var(--pos-border-glow)] hover:bg-[var(--pos-border)] text-[var(--pos-text)] text-xs font-bold transition">+</button>
+                    <button onClick={() => removeItem(i.product_id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-600 dark:text-rose-300 text-xs transition ml-1">✕</button>
                   </div>
                 </div>
               ))}
@@ -466,18 +466,18 @@ export default function Billing() {
           {/* Totals & Payment */}
           <div className="glass-card rounded-2xl p-4 space-y-3">
             {/* Bill summary */}
-            <div className="bg-[#121214]/80 border border-[rgba(74,104,105,0.25)] rounded-xl p-3 space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-400"><span>Subtotal</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{subtotal.toFixed(2)}</span></span></div>
-              <div className="flex justify-between text-xs text-slate-400"><span>Est. GST</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{estimatedTax.toFixed(2)}</span></span></div>
-              <div className="border-t border-white/5 pt-1.5 flex justify-between text-sm font-bold">
-                <span className="text-slate-200">Payable Total</span>
-                <span className="text-[#e1e2e7] text-base font-cyber"><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{estimatedGrandTotal.toFixed(2)}</span></span>
+            <div className="bg-[var(--pos-border-glow)] border border-[var(--pos-border)] rounded-xl p-3 space-y-1.5">
+              <div className="flex justify-between text-xs text-[var(--pos-muted)]"><span>Subtotal</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{subtotal.toFixed(2)}</span></span></div>
+              <div className="flex justify-between text-xs text-[var(--pos-muted)]"><span>Est. GST</span><span><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{estimatedTax.toFixed(2)}</span></span></div>
+              <div className="border-t border-[var(--pos-border)] pt-1.5 flex justify-between text-sm font-bold">
+                <span className="text-[var(--pos-text)]">Payable Total</span>
+                <span className="text-[var(--pos-text)] text-base font-cyber"><span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{estimatedGrandTotal.toFixed(2)}</span></span>
               </div>
             </div>
 
             {/* Payment method tabs */}
             <div>
-              <label className="text-[10px] uppercase tracking-[0.14em] text-slate-400 font-semibold mb-1.5 block">Payment Method</label>
+              <label className="text-[10px] uppercase tracking-[0.14em] text-[var(--pos-muted)] font-semibold mb-1.5 block">Payment Method</label>
               <div className="grid grid-cols-4 gap-1.5">
                 {([["cash", "💵", "Cash"], ["card", "💳", "Card"], ["upi", "📱", "UPI"], ["credit", "🏦", "Credit"]] as const).map(([val, emoji, label]) => (
                   <button
@@ -485,8 +485,8 @@ export default function Billing() {
                     onClick={() => { setPaymentMethod(val); if (val !== "cash") setAmountTendered(""); }}
                     className={`py-2 rounded-xl text-xs font-semibold transition-all border ${
                       paymentMethod === val
-                        ? "bg-cyan-500/20 border-cyan-400/30 text-cyan-200 shadow-[0_0_20px_rgba(0,245,255,0.08)]"
-                        : "bg-white/5 border-white/8 text-slate-400 hover:bg-white/8 hover:text-slate-300"
+                        ? "bg-cyan-500/20 border-cyan-400/30 text-cyan-700 dark:text-cyan-200 shadow-[0_0_20px_rgba(0,245,255,0.08)]"
+                        : "bg-[var(--pos-surface)] border-[var(--pos-border)] text-[var(--pos-muted)] hover:bg-[var(--pos-border-glow)] hover:text-[var(--pos-text)]"
                     }`}
                   >
                     <span className="block text-base mb-0.5">{emoji}</span>
@@ -507,7 +507,7 @@ export default function Billing() {
                   className="input-surface text-sm"
                 />
                 {estimatedChange !== null && (
-                  <p className={`text-xs mt-1 font-medium ${estimatedChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                  <p className={`text-xs mt-1 font-medium ${estimatedChange >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                     {estimatedChange >= 0 ? (
                       <>Change: <span className="text-[--pos-accent-copper]">₹ </span><span className="font-number">{estimatedChange.toFixed(2)}</span></>
                     ) : (
@@ -631,7 +631,7 @@ export default function Billing() {
           {/* ── Product grid / list ── */}
           {filteredProducts.length === 0 ? (
             <div className="glass-card rounded-2xl p-12 text-center">
-              <p className="text-slate-500 text-sm">No products found matching your filters.</p>
+              <p className="text-[var(--pos-muted)] text-sm">No products found matching your filters.</p>
             </div>
           ) : viewMode === "grid" ? (
             /* ─── GRID VIEW ─── */
@@ -647,8 +647,8 @@ export default function Billing() {
                       inCart
                         ? "border-[--pos-accent] bg-[rgba(74,104,105,0.06)] shadow-sm"
                         : isOut
-                          ? "border-white/5 bg-[#121214]/60 opacity-60"
-                          : "border-white/8 bg-[#1c1c1f]/80 hover:border-[rgba(74,104,105,0.3)] hover:bg-[#1c1c1f]/95"
+                          ? "border-[var(--pos-border)] bg-[var(--pos-border-glow)] opacity-60"
+                          : "border-[var(--pos-border)] bg-[var(--pos-surface)] hover:border-[--pos-accent] hover:bg-[var(--pos-border-glow)]"
                     }`}
                   >
                     {/* Category tag strip */}
@@ -657,9 +657,9 @@ export default function Billing() {
                     <div className="p-3.5">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="min-w-0 flex-1">
-                          <p className="text-[13px] font-semibold text-slate-100 truncate">{p.name}</p>
-                          <p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                            <span className="bg-white/5 px-1.5 py-0.5 rounded text-[10px] font-mono">{p.sku}</span>
+                          <p className="text-[13px] font-semibold text-[var(--pos-text)] truncate">{p.name}</p>
+                          <p className="text-[11px] text-[var(--pos-muted)] flex items-center gap-1.5 mt-0.5">
+                            <span className="bg-[var(--pos-border-glow)] px-1.5 py-0.5 rounded text-[10px] font-mono">{p.sku}</span>
                             <span>·</span>
                             <span>{catEmojis[catName || ""] || "📦"} {catName}</span>
                           </p>
@@ -669,22 +669,22 @@ export default function Billing() {
 
                       <div className="flex items-end justify-between mt-3">
                         <div>
-                          <p className="text-lg font-bold text-[#e1e2e7]"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{p.price}</span></p>
-                          <p className="text-[10px] text-slate-500">GST {p.tax_rate}%</p>
+                          <p className="text-lg font-bold text-[var(--pos-text)]"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{p.price}</span></p>
+                          <p className="text-[10px] text-[var(--pos-muted)]">GST {p.tax_rate}%</p>
                         </div>
 
                         {isOut ? (
-                          <span className="text-[10px] text-rose-400 font-semibold uppercase tracking-wider">Out of Stock</span>
+                          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold uppercase tracking-wider">Out of Stock</span>
                         ) : inCart ? (
                           <div className="flex items-center gap-1.5">
-                            <button onClick={() => decreaseQty(p.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold transition">−</button>
-                            <span className="text-sm w-6 text-center font-bold text-[#e1e2e7] font-number">{getCartQty(p.id)}</span>
-                            <button onClick={() => increaseQty(p.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold transition">+</button>
+                            <button onClick={() => decreaseQty(p.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-[var(--pos-border-glow)] hover:bg-[var(--pos-border)] text-[var(--pos-text)] text-sm font-bold transition">−</button>
+                            <span className="text-sm w-6 text-center font-bold text-[var(--pos-text)] font-number">{getCartQty(p.id)}</span>
+                            <button onClick={() => increaseQty(p.id)} className="h-7 w-7 flex items-center justify-center rounded-lg bg-[var(--pos-border-glow)] hover:bg-[var(--pos-border)] text-[var(--pos-text)] text-sm font-bold transition">+</button>
                           </div>
                         ) : (
                           <button
                             onClick={() => addToCart(p)}
-                            className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 border border-cyan-400/20 text-cyan-200 text-xs font-semibold hover:from-cyan-500/30 hover:to-indigo-500/30 transition-all"
+                            className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 border border-cyan-400/20 text-cyan-700 dark:text-cyan-200 text-xs font-semibold hover:from-cyan-500/30 hover:to-indigo-500/30 transition-all"
                           >
                             + Add
                           </button>
@@ -700,13 +700,13 @@ export default function Billing() {
             <div className="glass-card rounded-2xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-slate-300/80 bg-[#18275a]/70 border-b border-[#33437f]/45">
-                    <th className="py-3 px-3 text-left font-medium text-xs">Product</th>
-                    <th className="py-3 px-3 text-left font-medium text-xs hidden md:table-cell">Category</th>
-                    <th className="py-3 px-3 text-left font-medium text-xs hidden sm:table-cell">SKU</th>
-                    <th className="py-3 px-3 text-right font-medium text-xs">Price</th>
-                    <th className="py-3 px-3 text-center font-medium text-xs">Stock</th>
-                    <th className="py-3 px-3 text-center font-medium text-xs">Action</th>
+                  <tr className="text-[var(--pos-muted)] bg-[var(--pos-border-glow)] border-b border-[var(--pos-border)]">
+                    <th className="py-3 px-3 text-left font-semibold text-xs">Product</th>
+                    <th className="py-3 px-3 text-left font-semibold text-xs hidden md:table-cell">Category</th>
+                    <th className="py-3 px-3 text-left font-semibold text-xs hidden sm:table-cell">SKU</th>
+                    <th className="py-3 px-3 text-right font-semibold text-xs">Price</th>
+                    <th className="py-3 px-3 text-center font-semibold text-xs">Stock</th>
+                    <th className="py-3 px-3 text-center font-semibold text-xs">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -717,29 +717,29 @@ export default function Billing() {
                     return (
                       <tr
                         key={p.id}
-                        className={`border-b border-[#33437f]/20 transition ${
-                          inCart ? "bg-cyan-500/5" : isOut ? "opacity-50" : "hover:bg-[#1f3370]/20"
+                        className={`border-b border-[var(--pos-border)] transition ${
+                          inCart ? "bg-cyan-500/5" : isOut ? "opacity-50" : "hover:bg-[var(--pos-border-glow)]"
                         }`}
                       >
                         <td className="px-3 py-2.5">
-                          <span className="font-medium text-slate-100">{p.name}</span>
-                          {inCart && <span className="ml-2 text-[10px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded-full font-bold">×{getCartQty(p.id)}</span>}
+                          <span className="font-medium text-[var(--pos-text)]">{p.name}</span>
+                          {inCart && <span className="ml-2 text-[10px] bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 px-1.5 py-0.5 rounded-full font-bold">×{getCartQty(p.id)}</span>}
                         </td>
-                        <td className="px-3 py-2.5 text-slate-400 text-xs hidden md:table-cell">{catEmojis[catName] || ""} {catName}</td>
-                        <td className="px-3 py-2.5 text-slate-500 text-xs font-mono hidden sm:table-cell">{p.sku}</td>
-                        <td className="px-3 py-2.5 text-right text-[#e1e2e7] font-semibold"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{p.price}</span></td>
+                        <td className="px-3 py-2.5 text-[var(--pos-muted)] text-xs hidden md:table-cell">{catEmojis[catName] || ""} {catName}</td>
+                        <td className="px-3 py-2.5 text-[var(--pos-muted)] text-xs font-mono hidden sm:table-cell">{p.sku}</td>
+                        <td className="px-3 py-2.5 text-right text-[var(--pos-text)] font-semibold"><span className="text-[--pos-accent-copper]">₹</span><span className="font-number">{p.price}</span></td>
                         <td className="px-3 py-2.5 text-center">{stockBadge(p.id)}</td>
                         <td className="px-3 py-2.5 text-center">
                           {isOut ? (
-                            <span className="text-[10px] text-rose-400">Out</span>
+                            <span className="text-[10px] text-rose-600 dark:text-rose-400">Out</span>
                           ) : inCart ? (
                             <div className="inline-flex items-center gap-1">
-                              <button onClick={() => decreaseQty(p.id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold transition">−</button>
-                              <span className="text-xs w-5 text-center font-bold text-cyan-300">{getCartQty(p.id)}</span>
-                              <button onClick={() => increaseQty(p.id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold transition">+</button>
+                              <button onClick={() => decreaseQty(p.id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-[var(--pos-border-glow)] hover:bg-[var(--pos-border)] text-[var(--pos-text)] text-xs font-bold transition">−</button>
+                              <span className="text-xs w-5 text-center font-bold text-cyan-600 dark:text-cyan-300">{getCartQty(p.id)}</span>
+                              <button onClick={() => increaseQty(p.id)} className="h-6 w-6 flex items-center justify-center rounded-lg bg-[var(--pos-border-glow)] hover:bg-[var(--pos-border)] text-[var(--pos-text)] text-xs font-bold transition">+</button>
                             </div>
                           ) : (
-                            <button onClick={() => addToCart(p)} className="px-3 py-1 rounded-lg bg-cyan-500/15 border border-cyan-400/20 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/25 transition">Add</button>
+                            <button onClick={() => addToCart(p)} className="px-3 py-1 rounded-lg bg-cyan-500/15 border border-cyan-400/20 text-cyan-700 dark:text-cyan-200 text-xs font-semibold hover:bg-cyan-500/25 transition">Add</button>
                           )}
                         </td>
                       </tr>

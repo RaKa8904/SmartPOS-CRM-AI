@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/useAuth";
 
 /* ─── Icon primitives ─────────────────────────────────────── */
@@ -100,6 +100,47 @@ export default function Layout() {
   const { logout, user, email, role } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+
+  type ThemeMode = "light" | "dark" | "system";
+
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    return (localStorage.getItem("theme") as ThemeMode) || "system";
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    
+    const applyTheme = (currentTheme: ThemeMode) => {
+      let isDark = false;
+      if (currentTheme === "dark") {
+        isDark = true;
+      } else if (currentTheme === "light") {
+        isDark = false;
+      } else {
+        isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      }
+      
+      if (isDark) {
+        root.setAttribute("data-theme", "dark");
+        root.classList.add("dark");
+        root.classList.remove("light");
+      } else {
+        root.setAttribute("data-theme", "light");
+        root.classList.add("light");
+        root.classList.remove("dark");
+      }
+    };
+
+    applyTheme(theme);
+    localStorage.setItem("theme", theme);
+
+    if (theme === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handler = () => applyTheme("system");
+      mediaQuery.addEventListener("change", handler);
+      return () => mediaQuery.removeEventListener("change", handler);
+    }
+  }, [theme]);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Overview: true,
     Operations: true,
@@ -118,15 +159,15 @@ export default function Layout() {
     .filter((g) => g.items.length > 0);
 
   return (
-    <div className="app-shell min-h-screen text-zinc-100 flex">
+    <div className="app-shell min-h-screen text-[color:var(--pos-text)] flex">
 
       {/* ── Sidebar ─────────────────────────────────────────── */}
       <aside
-        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r bg-[#121214] 
-                    ${collapsed ? "w-0 border-r-transparent overflow-hidden" : "w-60 border-r-[rgba(74,104,105,0.25)]"}`}
+        className={`hidden md:flex flex-col shrink-0 transition-all duration-300 border-r bg-[var(--pos-bg-1)] 
+                    ${collapsed ? "w-0 border-r-transparent overflow-hidden" : "w-60 border-r-[var(--pos-border)]"}`}
       >
         {/* Brand */}
-        <div className="flex items-center justify-between px-3 py-4 border-b border-[rgba(74,104,105,0.25)]">
+        <div className="flex items-center justify-between px-3 py-4 border-b border-[var(--pos-border)]">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#4a6869] to-[#cba16c] shadow-md">
               <SvgIcon className="h-4 w-4 text-white stroke-2">
@@ -172,7 +213,7 @@ export default function Layout() {
                   <button
                     type="button"
                     onClick={() => toggleGroup(group.label)}
-                    className="flex items-center justify-between w-full mb-1.5 px-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-500 hover:text-[#e1e2e7] transition select-none text-left"
+                    className="flex items-center justify-between w-full mb-1.5 px-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-500 hover:text-[var(--pos-text)] transition select-none text-left"
                   >
                     <span className="flex items-center">
                       {GROUP_ICONS[group.label]}
@@ -193,7 +234,7 @@ export default function Layout() {
                     </svg>
                   </button>
                 ) : (
-                  <div className="mb-1.5 mx-auto h-px w-6 bg-white/10" />
+                  <div className="mb-1.5 mx-auto h-px w-6 bg-[var(--pos-border)]" />
                 )}
 
                 {/* Nav Items Container (collapsible) */}
@@ -212,8 +253,8 @@ export default function Layout() {
                         `group flex items-center gap-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 select-none
                          ${collapsed ? "justify-center py-2.5 px-0" : "px-2.5 py-2"}
                          ${isActive
-                           ? "bg-[rgba(74,104,105,0.14)] text-[#e1e2e7] border-l-2 border-[--pos-accent] font-cyber font-semibold"
-                           : "text-[#8e909a] hover:bg-white/5 hover:text-[#e1e2e7] hover:translate-x-0.5"
+                           ? "bg-[rgba(74,104,105,0.14)] text-[var(--pos-text)] border-l-2 border-[--pos-accent] font-cyber font-semibold"
+                           : "text-[var(--pos-muted)] hover:bg-[var(--pos-border-glow)] hover:text-[var(--pos-text)] hover:translate-x-0.5"
                          }`
                       }
                     >
@@ -235,11 +276,11 @@ export default function Layout() {
 
         {/* Role pill */}
         {roleMeta && (
-          <div className={`px-3 py-3 border-t border-[rgba(74,104,105,0.25)] ${collapsed ? "flex justify-center" : ""}`}>
+          <div className={`px-3 py-3 border-t border-[var(--pos-border)] ${collapsed ? "flex justify-center" : ""}`}>
             {collapsed ? (
               <span className={`h-2 w-2 rounded-full ${roleMeta.dot}`} title={roleMeta.label} />
             ) : (
-              <div className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 ${roleMeta.bg} border border-white/5`}>
+              <div className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 ${roleMeta.bg} border border-[var(--pos-border)]`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${roleMeta.dot} shrink-0`} />
                 <span className={`text-[11px] font-cyber font-semibold ${roleMeta.text}`}>{roleMeta.label}</span>
               </div>
@@ -251,14 +292,14 @@ export default function Layout() {
       {/* ── Main ──────────────────────────────────────────── */}
       <main className="flex-1 min-w-0">
         {/* Topbar */}
-        <header className="flex items-center justify-between px-5 py-3.5 border-b border-[rgba(74,104,105,0.25)] bg-[#121214]/80 backdrop-blur-xl">
+        <header className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--pos-border)] bg-[var(--pos-bg-1)]/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             {/* Morphing Logo / Expand Button when collapsed */}
             {collapsed && (
               <button
                 type="button"
                 onClick={() => setCollapsed(false)}
-                className="group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-200 hover:bg-white/8 mr-1"
+                className="group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-200 hover:bg-[var(--pos-border-glow)] mr-1"
                 title="Expand sidebar"
               >
                 {/* Logo Icon (default visible, fades out on hover) */}
@@ -288,18 +329,53 @@ export default function Layout() {
                 </div>
               </button>
             )}
-            <h1 className="text-[15px] font-cyber text-[#e1e2e7] font-bold tracking-wide">SmartPOS Console</h1>
+            <h1 className="text-[15px] font-cyber text-[var(--pos-text)] font-bold tracking-wide">SmartPOS Console</h1>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={() => {
+                const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
+                setTheme(nextTheme);
+              }}
+              className="text-[11px] font-cyber font-medium text-[var(--pos-muted)] bg-[var(--pos-surface)] border border-[var(--pos-border)] hover:border-[--pos-accent] hover:text-[var(--pos-text)] hover:bg-[var(--pos-border-glow)] px-3 py-1.5 rounded-full transition flex items-center gap-1.5 cursor-pointer select-none"
+              title={`Theme: ${theme === "light" ? "Light" : theme === "dark" ? "Dark" : "System"}`}
+            >
+              {theme === "light" && (
+                <>
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="18.36" x2="5.64" y2="19.78"/><line x1="18.36" y1="4.22" x2="19.78" y2="5.64"/>
+                  </svg>
+                  <span>Light</span>
+                </>
+              )}
+              {theme === "dark" && (
+                <>
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                  </svg>
+                  <span>Dark</span>
+                </>
+              )}
+              {theme === "system" && (
+                <>
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                  </svg>
+                  <span>System</span>
+                </>
+              )}
+            </button>
+
             {user && (
-              <span className="text-[11px] font-cyber text-slate-300 bg-white/5 border border-[rgba(74,104,105,0.25)] px-3 py-1 rounded-full">
+              <span className="text-[11px] font-cyber text-[var(--pos-text)] bg-[var(--pos-surface)] border border-[var(--pos-border)] px-3 py-1.5 rounded-full">
                 {user}{email && email !== user ? ` · ${email}` : ""}
               </span>
             )}
             <button
               onClick={() => { logout(); navigate("/login"); }}
-              className="text-[11px] font-cyber font-medium text-[#8e909a] bg-white/5 border border-white/8 hover:border-[--pos-accent] hover:text-[#e1e2e7] hover:bg-[rgba(74,104,105,0.1)] px-3 py-1 rounded-full transition"
+              className="text-[11px] font-cyber font-medium text-[var(--pos-muted)] bg-[var(--pos-surface)] border border-[var(--pos-border)] hover:border-[--pos-accent] hover:text-[var(--pos-text)] hover:bg-[var(--pos-border-glow)] px-3 py-1.5 rounded-full transition"
             >
               Logout
             </button>

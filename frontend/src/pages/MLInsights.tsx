@@ -184,14 +184,14 @@ function ProductSearchSelect({
         className="input-surface text-left flex items-center justify-between"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className={selected ? "text-slate-100" : "text-slate-400"}>
+        <span className={selected ? "text-[var(--pos-text)] font-semibold" : "text-[var(--pos-muted)]"}>
           {selected ? selected.name : "— Select a product —"}
         </span>
-        <span className="text-slate-400">▾</span>
+        <span className="text-[var(--pos-muted)]">▾</span>
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-2 w-full rounded-xl border border-[#33437f]/45 bg-[#0d1635] shadow-2xl p-2">
+        <div className="absolute z-30 mt-2 w-full rounded-xl border border-[var(--pos-border)] bg-[var(--pos-surface)] shadow-2xl p-2">
           <input
             className="input-surface mb-2"
             placeholder={placeholder}
@@ -730,12 +730,12 @@ export default function MLInsights() {
 
             {/* Forecast chart */}
             {selected && (
-              <div className="lg:col-span-8 lg:translate-y-2 lg:-ml-2 z-10 bg-[#04030d]/50 p-4 border border-[rgba(255,0,127,0.15)] rounded-tr-3xl rounded-bl-3xl shadow-[0_0_15px_rgba(255,0,127,0.05)]">
+              <div className="lg:col-span-8 lg:translate-y-2 lg:-ml-2 z-10 bg-[var(--pos-border-glow)] p-4 border border-[var(--pos-border)] rounded-tr-3xl rounded-bl-3xl shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="font-semibold text-slate-100">{selected.product_name}</p>
-                    <p className="text-xs text-zinc-400">
-                      7-day forecast: <span className="text-cyan-300 font-bold"><span className="font-number">{selected.predicted_7d_total}</span> units</span>
+                    <p className="font-semibold text-[var(--pos-text)]">{selected.product_name}</p>
+                    <p className="text-xs text-[var(--pos-muted)]">
+                      7-day forecast: <span className="text-cyan-600 dark:text-cyan-300 font-bold"><span className="font-number">{selected.predicted_7d_total}</span> units</span>
                       &nbsp;|&nbsp;
                       Trend: <span className={`font-bold ${TREND_COLOR[selected.trend]}`}>{TREND_ICON[selected.trend]} {selected.trend}</span>
                     </p>
@@ -749,10 +749,10 @@ export default function MLInsights() {
                         <stop offset="95%" stopColor="#22d3ee" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#7a8bbf" }} tickFormatter={(v) => v.slice(5)} />
-                    <YAxis tick={{ fontSize: 10, fill: "#7a8bbf" }} width={28} />
+                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--pos-muted)" }} tickFormatter={(v) => v.slice(5)} />
+                    <YAxis tick={{ fontSize: 10, fill: "var(--pos-muted)" }} width={28} />
                     <Tooltip
-                      contentStyle={{ background: "#101a45", border: "1px solid #3f57aa", borderRadius: "8px", fontSize: 12 }}
+                      contentStyle={{ background: "var(--pos-surface)", border: "1px solid var(--pos-border)", borderRadius: "8px", fontSize: 12, color: "var(--pos-text)" }}
                       labelFormatter={(l) => `Date: ${l}`}
                       formatter={(v) => [`${Number(v)} units`, "Forecast"]}
                     />

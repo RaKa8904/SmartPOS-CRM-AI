@@ -269,9 +269,9 @@ export default function Users() {
                 const isSelf = currentUserEmail === row.email;
                 const busy = busyId === row.id;
                 return (
-                  <tr key={row.id} className="border-t border-[#33437f]/25 odd:bg-[#11204b]/25">
-                    <td className="py-3 px-4 text-slate-300">{row.id}</td>
-                    <td className="py-3 px-4 text-slate-100">{row.email}</td>
+                  <tr key={row.id} className="border-t border-[var(--pos-border)] hover:bg-[var(--pos-border-glow)]">
+                    <td className="py-3 px-4 text-[var(--pos-muted)]">{row.id}</td>
+                    <td className="py-3 px-4 text-[var(--pos-text)]">{row.email}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <input

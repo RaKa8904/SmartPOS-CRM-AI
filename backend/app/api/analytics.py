@@ -257,6 +257,24 @@ def dashboard_v2(
     prev_revenue = round(sum(float(i.total_amount or 0.0) for i in invoices_prev), 2)
     prev_invoices = len(invoices_prev)
 
+    cur_avg_bill = round((cur_revenue / cur_invoices), 2) if cur_invoices else 0.0
+
+    cur_customers = 0
+    for c in customers:
+        created = _as_utc(c.created_at)
+        if created and range_start <= created <= range_end:
+            cur_customers += 1
+    cur_conversion = round((cur_invoices / max(cur_customers, 1)) * 100.0, 2)
+
+    cur_refunded = 0
+    for row in audit_rows:
+        created = _as_utc(row.created_at)
+        if not created or created < range_start or created > range_end:
+            continue
+        if row.action in {"invoice_refunded", "refund_created"}:
+            cur_refunded += 1
+    cur_refund_rate = round((cur_refunded / max(cur_invoices, 1)) * 100.0, 2)
+
     # Sales heatmap (day x hour) from selected period.
     heat: defaultdict[tuple[int, int], int] = defaultdict(int)
     for inv in invoices_range:
@@ -399,6 +417,11 @@ def dashboard_v2(
             "avg_bill_today": avg_bill_today,
             "conversion_rate_today": conversion_today,
             "refund_rate_today": refund_rate_today,
+            "revenue_period": cur_revenue,
+            "invoices_period": cur_invoices,
+            "avg_bill_period": cur_avg_bill,
+            "conversion_rate_period": cur_conversion,
+            "refund_rate_period": cur_refund_rate,
             "sparkline": sparkline,
         },
         "time_intelligence": {

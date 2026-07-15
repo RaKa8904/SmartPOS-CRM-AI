@@ -19,6 +19,55 @@
 	--pos-muted: #8e909a;
 }
 
+:root[data-theme="light"] {
+	--pos-bg-1: #f8f9fa;
+	--pos-bg-2: #ffffff;
+	--pos-bg-3: #f1f3f5;
+	--pos-accent: #3d5657;
+	--pos-accent-soft: #6c8687;
+	--pos-accent-pink: #3d5657;
+	--pos-accent-cyan: #3d5657;
+	--pos-accent-purple: #516869;
+	--pos-accent-copper: #a37a44;
+	--pos-violet: #425257;
+	--pos-surface: #ffffff;
+	--pos-border: rgba(61, 86, 87, 0.18);
+	--pos-border-glow: rgba(61, 86, 87, 0.12);
+	--pos-text: #212529;
+	--pos-muted: #495057;
+}
+
+:root[data-theme="light"] .glass-card {
+	background: var(--pos-surface);
+	border: 1px solid var(--pos-border);
+	box-shadow: 0 14px 42px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+:root[data-theme="light"] .section-title {
+	color: var(--pos-text);
+}
+
+:root[data-theme="light"] .text-gradient {
+	background: linear-gradient(90deg, #a37a44 0%, #3d5657 50%, #6c8687 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+
+:root[data-theme="light"] .input-surface {
+	background: rgba(255, 255, 255, 0.95);
+	border: 1px solid rgba(61, 86, 87, 0.25);
+}
+
+:root[data-theme="light"] .input-surface::placeholder {
+	color: rgba(73, 80, 87, 0.55);
+}
+
+:root[data-theme="light"] .input-surface:focus {
+	border-color: rgba(61, 86, 87, 0.7);
+	box-shadow: 0 0 0 3px rgba(61, 86, 87, 0.12);
+}
+
 * {
 	box-sizing: border-box;
 }

@@ -483,44 +483,44 @@ export default function Customers() {
           {/* RIGHT */}
           <div className="lg:col-span-3 glass-card rounded-2xl p-5 md:p-6 fade-in stagger-2 min-h-176">
             {!selectedCustomer ? (
-              <div className="h-full rounded-3xl border border-dashed border-[#33437f]/35 bg-[radial-gradient(circle_at_top,rgba(0,245,255,0.08),transparent_35%),rgba(13,22,53,0.42)] flex flex-col items-center justify-center text-center px-6 py-12">
-                <div className="h-16 w-16 rounded-3xl bg-linear-to-br from-cyan-400/20 to-violet-500/20 border border-cyan-300/20 flex items-center justify-center text-2xl text-cyan-100 mb-4">
+              <div className="h-full rounded-3xl border border-dashed border-[var(--pos-border)] bg-[var(--pos-border-glow)] flex flex-col items-center justify-center text-center px-6 py-12">
+                <div className="h-16 w-16 rounded-3xl bg-linear-to-br from-cyan-400/20 to-violet-500/20 border border-cyan-300/20 flex items-center justify-center text-2xl text-[var(--pos-text)] mb-4">
                   👤
                 </div>
-                <h2 className="text-2xl font-semibold text-zinc-100">Select a customer</h2>
-                <p className="text-slate-300/72 mt-3 max-w-md">
+                <h2 className="text-2xl font-semibold text-[var(--pos-text)]">Select a customer</h2>
+                <p className="text-[var(--pos-muted)] mt-3 max-w-md">
                   Pick someone from the left panel to review their spending summary, invoice trail, and printable invoice details.
                 </p>
               </div>
             ) : loadingCustomerData ? (
               <div className="space-y-4">
-                <div className="rounded-3xl bg-[#0d1635]/55 h-36 animate-pulse" />
+                <div className="rounded-3xl bg-[var(--pos-border-glow)] h-36 animate-pulse" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[1, 2, 3].map((item) => (
-                    <div key={item} className="rounded-2xl bg-[#0d1635]/55 h-28 animate-pulse" />
+                    <div key={item} className="rounded-2xl bg-[var(--pos-border-glow)] h-28 animate-pulse" />
                   ))}
                 </div>
-                <div className="rounded-2xl bg-[#0d1635]/55 h-80 animate-pulse" />
+                <div className="rounded-2xl bg-[var(--pos-border-glow)] h-80 animate-pulse" />
               </div>
             ) : (
               <>
-                <div className="rounded-3xl border border-[#33437f]/35 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.1),transparent_26%),rgba(13,22,53,0.52)] p-6">
+                <div className="rounded-3xl border border-[var(--pos-border)] bg-[var(--pos-surface)] p-6">
                   <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/75 mb-2">Customer Profile</p>
-                      <h2 className="text-2xl font-semibold text-zinc-100">{selectedCustomer.name}</h2>
+                      <p className="text-xs uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-200/75 mb-2">Customer Profile</p>
+                      <h2 className="text-2xl font-semibold text-[var(--pos-text)]">{selectedCustomer.name}</h2>
                       <div className="flex flex-wrap gap-2 mt-3">
                         {selectedCustomer.email && (
-                          <span className="text-xs px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-200 border border-violet-400/20">
+                          <span className="text-xs px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-700 dark:text-violet-200 border border-violet-400/20">
                             {selectedCustomer.email}
                           </span>
                         )}
                         {selectedCustomer.phone && (
-                          <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-200 border border-emerald-400/20">
+                          <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-200 border border-emerald-400/20">
                             {selectedCustomer.phone}
                           </span>
                         )}
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-400/20">
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-200 border border-cyan-400/20">
                           ID #{selectedCustomer.id}
                         </span>
                       </div>

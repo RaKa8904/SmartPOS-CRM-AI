@@ -30,6 +30,11 @@ type DashboardResponse = {
     avg_bill_today: number;
     conversion_rate_today: number;
     refund_rate_today: number;
+    revenue_period: number;
+    invoices_period: number;
+    avg_bill_period: number;
+    conversion_rate_period: number;
+    refund_rate_period: number;
     sparkline: {
       revenue: number[];
       invoices: number[];
@@ -130,6 +135,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardResponse | null>(null);
 
+  const getCardLabel = (baseLabel: string) => {
+    if (mode === "today") return `${baseLabel} Today`;
+    if (mode === "7d") return `${baseLabel} (7D)`;
+    if (mode === "30d") return `${baseLabel} (30D)`;
+    return `${baseLabel} (Custom)`;
+  };
+
   const fetchDashboard = async (nextMode: PeriodMode, start?: string, end?: string) => {
     setLoading(true);
     try {
@@ -222,8 +234,8 @@ export default function Dashboard() {
       {/* 1) Executive KPI strip */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         <div className="glass-card rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-wide text-slate-300/70">Revenue Today</p>
-          <p className="text-2xl font-bold text-emerald-300 mt-1">Rs {data.kpis.revenue_today.toFixed(2)}</p>
+          <p className="text-[11px] uppercase tracking-wide text-[var(--pos-muted)] font-semibold">{getCardLabel("Revenue")}</p>
+          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300 mt-1">Rs {data.kpis.revenue_period.toFixed(2)}</p>
           <ResponsiveContainer width="100%" height={48}>
             <AreaChart data={sparkData(spark.revenue, spark.labels)}>
               <Area dataKey="v" stroke="#4ade80" fill="#22c55e" fillOpacity={0.25} strokeWidth={2} />
@@ -232,8 +244,8 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-card rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-wide text-slate-300/70">Invoices Today</p>
-          <p className="text-2xl font-bold text-cyan-300 mt-1">{data.kpis.invoices_today}</p>
+          <p className="text-[11px] uppercase tracking-wide text-[var(--pos-muted)] font-semibold">{getCardLabel("Invoices")}</p>
+          <p className="text-2xl font-bold text-cyan-600 dark:text-cyan-300 mt-1">{data.kpis.invoices_period}</p>
           <ResponsiveContainer width="100%" height={48}>
             <AreaChart data={sparkData(spark.invoices, spark.labels)}>
               <Area dataKey="v" stroke="#22d3ee" fill="#0ea5e9" fillOpacity={0.25} strokeWidth={2} />
@@ -242,8 +254,8 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-card rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-wide text-slate-300/70">Avg Bill</p>
-          <p className="text-2xl font-bold text-indigo-300 mt-1">Rs {data.kpis.avg_bill_today.toFixed(2)}</p>
+          <p className="text-[11px] uppercase tracking-wide text-[var(--pos-muted)] font-semibold">{getCardLabel("Avg Bill")}</p>
+          <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-300 mt-1">Rs {data.kpis.avg_bill_period.toFixed(2)}</p>
           <ResponsiveContainer width="100%" height={48}>
             <AreaChart data={sparkData(spark.avg_bill, spark.labels)}>
               <Area dataKey="v" stroke="#818cf8" fill="#6366f1" fillOpacity={0.25} strokeWidth={2} />
@@ -252,8 +264,8 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-card rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-wide text-slate-300/70">Conversion</p>
-          <p className="text-2xl font-bold text-amber-300 mt-1">{data.kpis.conversion_rate_today.toFixed(1)}%</p>
+          <p className="text-[11px] uppercase tracking-wide text-[var(--pos-muted)] font-semibold">{getCardLabel("Conversion")}</p>
+          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{data.kpis.conversion_rate_period.toFixed(1)}%</p>
           <ResponsiveContainer width="100%" height={48}>
             <AreaChart data={sparkData(spark.conversion, spark.labels)}>
               <Area dataKey="v" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.23} strokeWidth={2} />
@@ -262,8 +274,8 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-card rounded-2xl p-4">
-          <p className="text-[11px] uppercase tracking-wide text-slate-300/70">Refund Rate</p>
-          <p className="text-2xl font-bold text-rose-300 mt-1">{data.kpis.refund_rate_today.toFixed(1)}%</p>
+          <p className="text-[11px] uppercase tracking-wide text-[var(--pos-muted)] font-semibold">{getCardLabel("Refund Rate")}</p>
+          <p className="text-2xl font-bold text-rose-600 dark:text-rose-300 mt-1">{data.kpis.refund_rate_period.toFixed(1)}%</p>
           <ResponsiveContainer width="100%" height={48}>
             <AreaChart data={sparkData(spark.refund, spark.labels)}>
               <Area dataKey="v" stroke="#fb7185" fill="#f43f5e" fillOpacity={0.23} strokeWidth={2} />
@@ -277,14 +289,14 @@ export default function Dashboard() {
         <div className="glass-card rounded-2xl p-5 xl:col-span-2">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <h3 className="text-lg font-semibold">Time Intelligence</h3>
-              <p className="text-xs text-slate-300/70">Revenue vs invoices with previous-period deltas</p>
+              <h3 className="text-lg font-semibold text-[var(--pos-text)]">Time Intelligence</h3>
+              <p className="text-xs text-[var(--pos-muted)]">Revenue vs invoices with previous-period deltas</p>
             </div>
             <div className="text-right text-xs">
-              <p className={`${data.time_intelligence.delta_pct.revenue >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
+              <p className={`${data.time_intelligence.delta_pct.revenue >= 0 ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"}`}>
                 Revenue: {data.time_intelligence.delta_pct.revenue >= 0 ? "+" : ""}{data.time_intelligence.delta_pct.revenue}%
               </p>
-              <p className={`${data.time_intelligence.delta_pct.invoices >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
+              <p className={`${data.time_intelligence.delta_pct.invoices >= 0 ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"}`}>
                 Invoices: {data.time_intelligence.delta_pct.invoices >= 0 ? "+" : ""}{data.time_intelligence.delta_pct.invoices}%
               </p>
             </div>
@@ -292,12 +304,12 @@ export default function Dashboard() {
 
           <ResponsiveContainer width="100%" height={300}>
             <ComposedChart data={data.time_intelligence.series} margin={{ top: 10, right: 20, left: 0, bottom: 35 }}>
-              <CartesianGrid strokeDasharray="4 4" stroke="#26336b" />
-              <XAxis dataKey="date" stroke="#9fb8e0" tick={{ fontSize: 11 }} angle={-18} textAnchor="end" height={54} />
-              <YAxis yAxisId="left" stroke="#9fb8e0" tickFormatter={(v) => `Rs ${v}`} />
-              <YAxis yAxisId="right" orientation="right" stroke="#d8b4fe" allowDecimals={false} />
+              <CartesianGrid strokeDasharray="4 4" stroke="var(--pos-border)" />
+              <XAxis dataKey="date" stroke="var(--pos-muted)" tick={{ fontSize: 11 }} angle={-18} textAnchor="end" height={54} />
+              <YAxis yAxisId="left" stroke="var(--pos-muted)" tickFormatter={(v) => `Rs ${v}`} />
+              <YAxis yAxisId="right" orientation="right" stroke="var(--pos-accent-soft)" allowDecimals={false} />
               <Tooltip
-                contentStyle={{ background: "#131a38", border: "1px solid #3f57aa", borderRadius: "10px", color: "#dbe8ff" }}
+                contentStyle={{ background: "var(--pos-surface)", border: "1px solid var(--pos-border)", borderRadius: "10px", color: "var(--pos-text)" }}
                 formatter={(value, name) => {
                   if (name === "Revenue") return [`Rs ${Number(value ?? 0).toFixed(2)}`, "Revenue"];
                   return [Number(value ?? 0), "Invoices"];
@@ -311,12 +323,12 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-card rounded-2xl p-5">
-          <h3 className="text-lg font-semibold">Goal Tracking</h3>
-          <p className="text-xs text-slate-300/70 mb-4">Daily/weekly targets with end-of-day projection</p>
+          <h3 className="text-lg font-semibold text-[var(--pos-text)]">Goal Tracking</h3>
+          <p className="text-xs text-[var(--pos-muted)] mb-4">Daily/weekly targets with end-of-day projection</p>
 
           <div className="space-y-4">
             <div>
-              <div className="flex justify-between text-xs mb-1 text-slate-300">
+              <div className="flex justify-between text-xs mb-1 text-[var(--pos-text)]">
                 <span>Daily Goal</span>
                 <span>Rs {data.goals.daily_actual.toFixed(0)} / {data.goals.daily_goal.toFixed(0)}</span>
               </div>
@@ -326,7 +338,7 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <div className="flex justify-between text-xs mb-1 text-slate-300">
+              <div className="flex justify-between text-xs mb-1 text-[var(--pos-text)]">
                 <span>Weekly Goal</span>
                 <span>Rs {data.goals.weekly_actual.toFixed(0)} / {data.goals.weekly_goal.toFixed(0)}</span>
               </div>
@@ -336,8 +348,8 @@ export default function Dashboard() {
             </div>
 
             <div className="rounded-xl border border-cyan-300/20 bg-cyan-500/10 p-3">
-              <p className="text-xs text-slate-300/75">Projected End of Day Revenue</p>
-              <p className="text-xl font-bold text-cyan-200 mt-1">Rs {data.goals.projected_eod.toFixed(2)}</p>
+              <p className="text-xs text-[var(--pos-muted)]">Projected End of Day Revenue</p>
+              <p className="text-xl font-bold text-cyan-600 dark:text-cyan-200 mt-1">Rs {data.goals.projected_eod.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -346,24 +358,24 @@ export default function Dashboard() {
       {/* 3 + 6) Heatmap + Alert rail */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="glass-card rounded-2xl p-5 xl:col-span-2">
-          <h3 className="text-lg font-semibold">Operational Heatmap</h3>
-          <p className="text-xs text-slate-300/70 mb-4">Invoice density by day-of-week and hour</p>
+          <h3 className="text-lg font-semibold text-[var(--pos-text)]">Operational Heatmap</h3>
+          <p className="text-xs text-[var(--pos-muted)] mb-4">Invoice density by day-of-week and hour</p>
           <div className="overflow-x-auto">
             <div className="min-w-245">
               <div className="grid grid-cols-[72px_repeat(24,minmax(0,1fr))] gap-1 mb-2">
                 <div />
                 {data.sales_heatmap.labels.hours.map((h) => (
-                  <div key={`h-${h}`} className="text-[10px] text-slate-400 text-center">{h}</div>
+                  <div key={`h-${h}`} className="text-[10px] text-[var(--pos-muted)] text-center">{h}</div>
                 ))}
               </div>
 
               {heatRows.map((row) => (
                 <div key={row.dayLabel} className="grid grid-cols-[72px_repeat(24,minmax(0,1fr))] gap-1 mb-1">
-                  <div className="text-xs text-slate-300/80 flex items-center">{row.dayLabel}</div>
+                  <div className="text-xs text-[var(--pos-text)] flex items-center font-medium">{row.dayLabel}</div>
                   {row.cells.map((c) => (
                     <div
                       key={`${row.dayLabel}-${c.hour}`}
-                      className="h-5 rounded-sm border border-white/5"
+                      className="h-5 rounded-sm border border-[var(--pos-border)]"
                       style={{ background: intensityColor(c.count, data.sales_heatmap.max_count) }}
                       title={`${row.dayLabel} ${c.hour}:00 -> ${c.count} invoices`}
                     />
@@ -375,17 +387,17 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-card rounded-2xl p-5">
-          <h3 className="text-lg font-semibold">Alert & Activity Rail</h3>
-          <p className="text-xs text-slate-300/70 mb-4">Security, admin, pricing, and inventory signals</p>
+          <h3 className="text-lg font-semibold text-[var(--pos-text)]">Alert & Activity Rail</h3>
+          <p className="text-xs text-[var(--pos-muted)] mb-4">Security, admin, pricing, and inventory signals</p>
           <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
             {data.alerts.map((a) => (
-              <div key={a.id} className="rounded-lg border border-white/10 bg-white/5 p-2.5">
-                <p className="text-[11px] text-cyan-200 font-semibold">{a.action}</p>
-                <p className="text-[11px] text-slate-300/80">{a.message}</p>
-                <p className="text-[10px] text-slate-400 mt-1">{a.actor} · {fmtDate(a.time)}</p>
+              <div key={a.id} className="rounded-lg border border-[var(--pos-border)] bg-[var(--pos-border-glow)] p-2.5">
+                <p className="text-[11px] text-cyan-600 dark:text-cyan-200 font-semibold">{a.action}</p>
+                <p className="text-[11px] text-[var(--pos-text)]">{a.message}</p>
+                <p className="text-[10px] text-[var(--pos-muted)] mt-1">{a.actor} · {fmtDate(a.time)}</p>
               </div>
             ))}
-            {data.alerts.length === 0 && <p className="text-xs text-slate-400">No recent alerts.</p>}
+            {data.alerts.length === 0 && <p className="text-xs text-[var(--pos-muted)]">No recent alerts.</p>}
           </div>
         </div>
       </div>
@@ -393,20 +405,20 @@ export default function Dashboard() {
       {/* 4 + 5) Cashier matrix + inventory risk */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="glass-card rounded-2xl p-5">
-          <h3 className="text-lg font-semibold">Cashier Performance Matrix</h3>
-          <p className="text-xs text-slate-300/70 mb-4">Bubble map: invoices vs avg bill, bubble size by revenue</p>
+          <h3 className="text-lg font-semibold text-[var(--pos-text)]">Cashier Performance Matrix</h3>
+          <p className="text-xs text-[var(--pos-muted)] mb-4">Bubble map: invoices vs avg bill, bubble size by revenue</p>
 
           <ResponsiveContainer width="100%" height={320}>
             <ScatterChart margin={{ top: 10, right: 10, bottom: 40, left: 10 }}>
-              <CartesianGrid strokeDasharray="4 4" stroke="#26336b" />
-              <XAxis dataKey="invoice_count" type="number" stroke="#9fb8e0" name="Invoices" />
-              <YAxis dataKey="avg_bill" type="number" stroke="#9fb8e0" name="Avg Bill" tickFormatter={(v) => `Rs ${v}`} />
+              <CartesianGrid strokeDasharray="4 4" stroke="var(--pos-border)" />
+              <XAxis dataKey="invoice_count" type="number" stroke="var(--pos-muted)" name="Invoices" />
+              <YAxis dataKey="avg_bill" type="number" stroke="var(--pos-muted)" name="Avg Bill" tickFormatter={(v) => `Rs ${v}`} />
               <ZAxis dataKey="bubble" range={[80, 900]} />
               <Tooltip
                 cursor={{ strokeDasharray: "4 4" }}
-                contentStyle={{ background: "#101a45", border: "1px solid #5f7fe0", borderRadius: "10px", color: "#f1f7ff" }}
-                itemStyle={{ color: "#f1f7ff", fontWeight: 600 }}
-                labelStyle={{ color: "#a8ddff", fontWeight: 700 }}
+                contentStyle={{ background: "var(--pos-surface)", border: "1px solid var(--pos-border)", borderRadius: "10px", color: "var(--pos-text)" }}
+                itemStyle={{ color: "var(--pos-text)", fontWeight: 600 }}
+                labelStyle={{ color: "var(--pos-accent-soft)", fontWeight: 700 }}
                 formatter={(value, name) => {
                   if (name === "Avg Bill") return [`Rs ${Number(value ?? 0).toFixed(2)}`, "Avg Bill"];
                   return [Number(value ?? 0), name];
@@ -420,7 +432,7 @@ export default function Dashboard() {
             </ScatterChart>
           </ResponsiveContainer>
 
-          <div className="mt-2 text-xs text-slate-300/75 grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="mt-2 text-xs text-[var(--pos-muted)] grid grid-cols-1 md:grid-cols-2 gap-2">
             {data.cashier_matrix.slice(0, 6).map((c) => (
               <p key={c.cashier_email}>{compactEmail(c.cashier_email)}: Rs {c.revenue.toFixed(0)} ({c.invoice_count} inv)</p>
             ))}
@@ -428,26 +440,26 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-card rounded-2xl p-5">
-          <h3 className="text-lg font-semibold">Inventory Risk Block</h3>
-          <p className="text-xs text-slate-300/70 mb-4">Low-stock and stockout intelligence with severity</p>
+          <h3 className="text-lg font-semibold text-[var(--pos-text)]">Inventory Risk Block</h3>
+          <p className="text-xs text-[var(--pos-muted)] mb-4">Low-stock and stockout intelligence with severity</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <p className="text-[11px] text-slate-400 uppercase">Products</p>
-              <p className="text-xl font-bold text-cyan-200 mt-1">{data.inventory_risk.total_products}</p>
+            <div className="rounded-xl border border-[var(--pos-border)] bg-[var(--pos-border-glow)] p-3">
+              <p className="text-[11px] text-[var(--pos-muted)] uppercase">Products</p>
+              <p className="text-xl font-bold text-cyan-600 dark:text-cyan-200 mt-1">{data.inventory_risk.total_products}</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <p className="text-[11px] text-slate-400 uppercase">Low Stock</p>
-              <p className="text-xl font-bold text-yellow-200 mt-1">{data.inventory_risk.low_stock_count}</p>
+            <div className="rounded-xl border border-[var(--pos-border)] bg-[var(--pos-border-glow)] p-3">
+              <p className="text-[11px] text-[var(--pos-muted)] uppercase">Low Stock</p>
+              <p className="text-xl font-bold text-amber-600 dark:text-yellow-200 mt-1">{data.inventory_risk.low_stock_count}</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <p className="text-[11px] text-slate-400 uppercase">Out of Stock</p>
-              <p className="text-xl font-bold text-rose-200 mt-1">{data.inventory_risk.out_of_stock_count}</p>
+            <div className="rounded-xl border border-[var(--pos-border)] bg-[var(--pos-border-glow)] p-3">
+              <p className="text-[11px] text-[var(--pos-muted)] uppercase">Out of Stock</p>
+              <p className="text-xl font-bold text-rose-600 dark:text-rose-200 mt-1">{data.inventory_risk.out_of_stock_count}</p>
             </div>
           </div>
 
           <div className="mb-4">
-            <div className="flex justify-between text-xs text-slate-300 mb-1">
+            <div className="flex justify-between text-xs text-[var(--pos-text)] mb-1">
               <span>Risk Score</span>
               <span>{data.inventory_risk.risk_score.toFixed(1)} / 100</span>
             </div>
@@ -458,10 +470,10 @@ export default function Dashboard() {
 
           <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
             {data.inventory_risk.likely_stockouts.slice(0, 10).map((p) => (
-              <div key={p.id} className="rounded-lg border border-white/10 bg-white/5 p-2.5 flex items-center justify-between gap-2">
+              <div key={p.id} className="rounded-lg border border-[var(--pos-border)] bg-[var(--pos-border-glow)] p-2.5 flex items-center justify-between gap-2">
                 <div>
-                  <p className="text-sm text-slate-100">{p.name}</p>
-                  <p className="text-[11px] text-slate-400">{p.sku} · stock {p.stock}</p>
+                  <p className="text-sm text-[var(--pos-text)] font-medium">{p.name}</p>
+                  <p className="text-[11px] text-[var(--pos-muted)]">{p.sku} · stock {p.stock}</p>
                 </div>
                 <span className={`text-[10px] font-semibold uppercase px-2 py-1 rounded-full border ${severityClass(p.severity)}`}>
                   {p.severity}
