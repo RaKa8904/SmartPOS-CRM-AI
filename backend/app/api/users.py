@@ -9,7 +9,7 @@ from app.models.user import User
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-VALID_ROLES = {"admin", "manager", "cashier"}
+VALID_ROLES = {"admin", "sales", "manager", "cashier"}
 
 
 class UpdateRoleRequest(BaseModel):

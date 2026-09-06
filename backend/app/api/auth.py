@@ -22,7 +22,7 @@ from app.core.email_sender import send_email
 
 router = APIRouter()
 
-ALLOWED_ROLES = {"admin", "manager", "cashier"}
+ALLOWED_ROLES = {"admin", "sales", "manager", "cashier"}
 MAX_FAILED_LOGIN_ATTEMPTS = int(os.getenv("MAX_FAILED_LOGIN_ATTEMPTS", "5"))
 ACCOUNT_LOCK_MINUTES = int(os.getenv("ACCOUNT_LOCK_MINUTES", "15"))
 INVITE_EXPIRE_HOURS = int(os.getenv("INVITE_EXPIRE_HOURS", "48"))
