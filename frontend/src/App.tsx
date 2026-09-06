@@ -58,11 +58,18 @@ export default function App() {
             </RoleRoute>
           }
         />
-        <Route path="/billing" element={<Billing />} />
+        <Route
+          path="/billing"
+          element={
+            <RoleRoute allowedRoles={["admin", "manager", "cashier"]}>
+              <Billing />
+            </RoleRoute>
+          }
+        />
         <Route
           path="/sales"
           element={
-            <RoleRoute allowedRoles={["admin", "manager"]}>
+            <RoleRoute allowedRoles={["admin", "sales"]}>
               <SalesPipeline />
             </RoleRoute>
           }
@@ -83,7 +90,14 @@ export default function App() {
             </RoleRoute>
           }
         />
-        <Route path="/customers" element={<Customers />} />
+        <Route
+          path="/customers"
+          element={
+            <RoleRoute allowedRoles={["admin", "manager", "cashier"]}>
+              <Customers />
+            </RoleRoute>
+          }
+        />
         <Route
           path="/pricing"
           element={

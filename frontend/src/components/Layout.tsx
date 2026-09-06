@@ -71,7 +71,7 @@ const allGroups: NavGroup[] = [
   {
     label: "Sales",
     items: [
-      { name: "Sales Pipeline", path: "/sales", roles: ["admin", "manager"], icon: <SvgIcon><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></SvgIcon> },
+      { name: "Sales Pipeline", path: "/sales", roles: ["admin", "sales"], icon: <SvgIcon><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></SvgIcon> },
     ],
   },
   {
@@ -105,6 +105,7 @@ const ROLE_META: Record<string, { label: string; dot: string; bg: string; text: 
   admin:   { label: "Admin",   dot: "bg-red-400",    bg: "bg-red-500/10",    text: "text-red-300" },
   manager: { label: "Manager", dot: "bg-yellow-400", bg: "bg-yellow-500/10", text: "text-yellow-300" },
   cashier: { label: "Cashier", dot: "bg-emerald-400",bg: "bg-emerald-500/10",text: "text-emerald-300" },
+  sales:   { label: "Sales",   dot: "bg-cyan-400",   bg: "bg-cyan-500/10",   text: "text-cyan-300" },
 };
 
 export default function Layout() {

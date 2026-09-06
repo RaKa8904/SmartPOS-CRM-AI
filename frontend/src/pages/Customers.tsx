@@ -68,6 +68,7 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [history, setHistory] = useState<InvoiceHistoryItem[]>([]);
   const [summary, setSummary] = useState<CustomerSummary | null>(null);
+  const [invoicePage, setInvoicePage] = useState(1);
 
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDetail | null>(null);
 
@@ -100,6 +101,7 @@ export default function Customers() {
 
   const fetchCustomerAnalytics = async (customerId: number) => {
     setLoadingCustomerData(true);
+    setInvoicePage(1);
     try {
       const [histRes, summaryRes] = await Promise.all([
         api.get<CustomerHistoryResponse>(`/customers/${customerId}/history`),
@@ -286,6 +288,19 @@ export default function Customers() {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, total]) => ({ month, total: Number(total.toFixed(2)) }));
   }, [history]);
+
+  const sortedHistory = useMemo(() => {
+    return [...history].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [history]);
+
+  const INVOICES_PER_PAGE = 10;
+  const totalPages = Math.ceil(sortedHistory.length / INVOICES_PER_PAGE) || 1;
+  const paginatedInvoices = useMemo(() => {
+    const start = (invoicePage - 1) * INVOICES_PER_PAGE;
+    return sortedHistory.slice(start, start + INVOICES_PER_PAGE);
+  }, [sortedHistory, invoicePage]);
 
   if (loading) {
     return (
@@ -548,8 +563,21 @@ export default function Customers() {
                       <p className="text-lg font-medium text-zinc-100 mt-2">{lastPurchaseAt}</p>
                     </div>
                     <div className="rounded-2xl border border-[#33437f]/30 bg-[#0d1635]/55 p-4">
-                      <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Invoice Access</p>
-                      <p className="text-sm text-slate-300/78 mt-2">Click any invoice ID below to inspect or print the full bill.</p>
+                      <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Customer Tier & Perks</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                          (summary?.total_spent ?? 0) > 10000
+                            ? "bg-amber-400/15 text-amber-300 border border-amber-400/30"
+                            : (summary?.total_spent ?? 0) > 3000
+                            ? "bg-cyan-400/15 text-cyan-300 border border-cyan-400/30"
+                            : "bg-emerald-400/15 text-emerald-300 border border-emerald-400/30"
+                        }`}>
+                          {(summary?.total_spent ?? 0) > 10000 ? "⭐ VIP Platinum Member" : (summary?.total_spent ?? 0) > 3000 ? "💎 Gold Tier Member" : "🟢 Active Shopper"}
+                        </span>
+                        <span className="text-xs text-slate-300/80 font-medium">
+                          {history.length} order{history.length === 1 ? "" : "s"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -622,54 +650,84 @@ export default function Customers() {
                   <div className="flex items-center justify-between px-4 py-4 border-b border-[#33437f]/35 bg-[#18275a]/45">
                     <div>
                       <h3 className="section-title text-base">Invoice History</h3>
-                      <p className="text-xs text-slate-300/65 mt-1">Chronological purchase trail for this customer.</p>
+                      <p className="text-xs text-slate-300/65 mt-1">Latest purchases first · 10 per page</p>
                     </div>
                     <span className="text-xs px-2.5 py-1 rounded-full border border-[#33437f]/40 bg-[#0d1635]/55 text-slate-200/75">
                       {history.length} invoice{history.length === 1 ? "" : "s"}
                     </span>
                   </div>
 
-                  {history.length === 0 ? (
+                  {paginatedInvoices.length === 0 ? (
                     <div className="px-4 py-10 text-center text-slate-300/72">
                       No invoices found for this customer yet.
                     </div>
                   ) : (
-                    <div className="overflow-auto">
-                      <table className="w-full text-sm min-w-152">
-                        <thead>
-                          <tr className="border-b border-[#33437f]/40 text-slate-300/85">
-                            <th className="text-left py-3 px-4">Invoice ID</th>
-                            <th className="text-left py-3 px-4">Total</th>
-                            <th className="text-left py-3 px-4">Created At</th>
-                            <th className="text-left py-3 px-4">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {history.map((inv) => (
-                            <tr key={inv.invoice_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
-                              <td className="py-3 px-4">
-                                <button
-                                  onClick={() => fetchInvoice(inv.invoice_id)}
-                                  className="text-cyan-200 hover:text-cyan-100 underline underline-offset-4"
-                                >
-                                  #{inv.invoice_id}
-                                </button>
-                              </td>
-                              <td className="py-3 px-4 text-cyan-100 font-medium">₹ {inv.total_amount.toFixed(2)}</td>
-                              <td className="py-3 px-4 text-slate-200/85">{new Date(inv.created_at).toLocaleString()}</td>
-                              <td className="py-3 px-4">
-                                <button
-                                  onClick={() => fetchInvoice(inv.invoice_id)}
-                                  className="text-xs px-3 py-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/15 transition"
-                                >
-                                  Open Invoice
-                                </button>
-                              </td>
+                    <>
+                      <div className="overflow-auto">
+                        <table className="w-full text-sm min-w-152">
+                          <thead>
+                            <tr className="border-b border-[#33437f]/40 text-slate-300/85">
+                              <th className="text-left py-3 px-4">Invoice ID</th>
+                              <th className="text-left py-3 px-4">Total</th>
+                              <th className="text-left py-3 px-4">Created At</th>
+                              <th className="text-left py-3 px-4">Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {paginatedInvoices.map((inv) => (
+                              <tr key={inv.invoice_id} className="border-b border-[#33437f]/25 odd:bg-[#11204b]/25 hover:bg-[#203063]/28 transition">
+                                <td className="py-3 px-4">
+                                  <button
+                                    onClick={() => fetchInvoice(inv.invoice_id)}
+                                    className="text-cyan-200 hover:text-cyan-100 underline underline-offset-4"
+                                  >
+                                    #{inv.invoice_id}
+                                  </button>
+                                </td>
+                                <td className="py-3 px-4 text-cyan-100 font-medium">₹ {inv.total_amount.toFixed(2)}</td>
+                                <td className="py-3 px-4 text-slate-200/85">{new Date(inv.created_at).toLocaleString()}</td>
+                                <td className="py-3 px-4">
+                                  <button
+                                    onClick={() => fetchInvoice(inv.invoice_id)}
+                                    className="text-xs px-3 py-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/15 transition"
+                                  >
+                                    Open Invoice
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between px-4 py-3 border-t border-[#33437f]/35 bg-[#18275a]/30">
+                          <p className="text-xs text-slate-300/70">
+                            Showing {(invoicePage - 1) * INVOICES_PER_PAGE + 1}–
+                            {Math.min(invoicePage * INVOICES_PER_PAGE, sortedHistory.length)} of {sortedHistory.length}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setInvoicePage((p) => Math.max(1, p - 1))}
+                              disabled={invoicePage === 1}
+                              className="px-3 py-1 text-xs rounded-lg border border-[#33437f]/40 bg-[#0d1635] text-slate-200 disabled:opacity-40 hover:bg-[#18275a] transition cursor-pointer"
+                            >
+                              Previous
+                            </button>
+                            <span className="text-xs text-cyan-200 font-semibold px-2">
+                              Page {invoicePage} of {totalPages}
+                            </span>
+                            <button
+                              onClick={() => setInvoicePage((p) => Math.min(totalPages, p + 1))}
+                              disabled={invoicePage === totalPages}
+                              className="px-3 py-1 text-xs rounded-lg border border-[#33437f]/40 bg-[#0d1635] text-slate-200 disabled:opacity-40 hover:bg-[#18275a] transition cursor-pointer"
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </>

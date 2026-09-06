@@ -7,7 +7,7 @@ type UserRow = {
   id: number;
   email: string;
   username: string;
-  role: "admin" | "manager" | "cashier";
+  role: "admin" | "sales" | "manager" | "cashier";
   is_active: boolean;
   created_at: string | null;
   last_login_at: string | null;
@@ -19,13 +19,13 @@ type UserRow = {
 type InviteResponse = {
   message: string;
   email: string;
-  role: "admin" | "manager" | "cashier";
+  role: "admin" | "sales" | "manager" | "cashier";
   invite_token: string;
   register_link: string;
   expires_at: string;
 };
 
-const ROLE_OPTIONS: Array<UserRow["role"]> = ["admin", "manager", "cashier"];
+const ROLE_OPTIONS: Array<UserRow["role"]> = ["admin", "sales", "manager", "cashier"];
 
 function fmtDate(value: string | null): string {
   if (!value) return "-";
@@ -190,6 +190,7 @@ export default function Users() {
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
+              <option value="sales">Sales</option>
               <option value="manager">Manager</option>
               <option value="cashier">Cashier</option>
             </select>
@@ -220,6 +221,7 @@ export default function Users() {
               className="input-surface"
             >
               <option value="cashier">cashier</option>
+              <option value="sales">sales</option>
               <option value="manager">manager</option>
               <option value="admin">admin</option>
             </select>
@@ -270,7 +272,7 @@ export default function Users() {
                 const busy = busyId === row.id;
                 return (
                   <tr key={row.id} className="border-t border-[var(--pos-border)] hover:bg-[var(--pos-border-glow)]">
-                    <td className="py-3 px-4 text-[var(--pos-muted)]">{row.id}</td>
+                    <td className="py-3 px-4 text-[var(--pos-muted)] font-mono">{String(row.id).padStart(2, '0')}</td>
                     <td className="py-3 px-4 text-[var(--pos-text)]">{row.email}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">

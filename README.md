@@ -1,6 +1,6 @@
 # SmartPOS CRM AI
 
-SmartPOS CRM AI is a full-stack retail operations platform that combines POS billing, CRM workflows, pricing intelligence, notifications, analytics, and machine learning in one system.
+SmartPOS CRM AI is a full-stack retail operations platform that combines POS billing, CRM workflows, B2B sales pipeline management, pricing intelligence, notifications, analytics, and machine learning in one system.
 
 It is built for practical business usage with role-based access, secure authentication, and seeded analytics-ready data.
 
@@ -9,7 +9,11 @@ It is built for practical business usage with role-based access, secure authenti
 - POS billing with GST/tax-aware invoice generation
 - Real-time stock-aware cart controls in billing
 - Product and category management with GST rates
-- Customer profiles, invoice history, edit/delete actions, and spending charts
+- Customer profiles, invoice history with latest-first sorting, 10/page pagination, and loyalty tier insights
+- B2B Sales Pipeline with company/contact management, deal tracking, and automated Round-Robin lead assignment
+- Strict Sales role isolation allowing access exclusively to the Sales Pipeline module
+- External Leads Ingestion API (`POST /sales/leads/external`) with `X-API-Key` header authentication for third-party webforms, Meta/Google Ads, or Zapier integrations
+- 2-Digit padded User ID formatting (`01`, `02`, `03`...) starting from sequence `01`
 - Dynamic pricing center with audit trail, bulk update, schedule support, and customer impact tracking
 - Notification campaigns for price-drop eligible customers
 - Dashboard analytics and ML insights for customer and product behavior
@@ -64,7 +68,7 @@ ML modules run in backend services over transactional data.
 .
 ├── backend/
 │   ├── app/
-│   │   ├── api/           # FastAPI route modules
+│   │   ├── api/           # FastAPI route modules (billing, sales, customers, pricing, etc.)
 │   │   ├── core/          # auth, jwt, security, dependencies, limiter
 │   │   ├── db/            # database config/init/seed
 │   │   ├── ml/            # ML services
@@ -112,10 +116,21 @@ ML modules run in backend services over transactional data.
 - Customer list with search and richer profile panel
 - Add customer workflow
 - Edit and delete customer actions in customer cards
-- Customer invoice history with invoice modal and print support
+- Customer invoice history:
+  - Latest purchases shown first (`DESC`)
+  - 10 invoices per page with pagination controls (`Previous`, `Page X of Y`, `Next`)
+  - Customer Tier Perks card (`VIP Platinum`, `Gold Member`, `Active Shopper`)
 - Spending analytics charts on customer page
 
-### 4) Pricing Center
+### 4) Sales Pipeline and Leads CRM
+
+- Track B2B leads across pipeline stages (`New`, `Contacted`, `Demo Scheduled`, `Negotiating`, `Won`, `Lost`)
+- Create and manage linked Companies and Contacts
+- **Strict Role Isolation**: Accessible exclusively to `admin` and `sales` accounts. Sales accounts are restricted strictly to `/sales` and cannot view billing, products, analytics, or admin modules.
+- **Automated Round-Robin Lead Assignment**: New unassigned leads are automatically distributed in equal sequence among active sales employees.
+- **External Leads API Key Ingestion**: Endpoint `POST /sales/leads/external` accepts lead payloads from webforms, Facebook Ads, or Zapier using `X-API-Key` header authentication configured via `LEADS_EXTERNAL_API_KEY`.
+
+### 5) Pricing Center
 
 - Single-product price update
 - Price-drop impact lookup (eligible customers)
@@ -127,21 +142,21 @@ ML modules run in backend services over transactional data.
 - Price change audit trail endpoint and UI tab
 - Product search selector and stock indicators in pricing flow
 
-### 5) Notifications
+### 6) Notifications
 
 - Template and campaign workflows
 - Product-linked campaign generation
 - Email/SMS channel support hooks
 - Campaign send, retry, and status tracking
 
-### 6) Dashboard and Analytics
+### 7) Dashboard and Analytics
 
 - KPI cards
 - Revenue and invoice trends
 - Product/customer performance metrics
 - Operational visuals and business snapshots
 
-### 7) ML Insights
+### 8) ML Insights
 
 - Customer Segmentation
 - Churn Risk Prediction
@@ -151,18 +166,14 @@ ML modules run in backend services over transactional data.
 - Demand Forecasting
 - Anomaly Detection
 
-Recent UX additions in ML Insights:
-
-- Search for Segments, Churn, LTV, and Demand lists
-- Searchable product selection for Recommendations and Price Trend panels
-- Clickable LTV tier rank cards to filter customers by tier
-
 ## Authentication, Authorization, and Security
 
 ### Auth and RBAC
 
 - Hardened JWT access and refresh token session model
-- Role-based access: admin, manager, cashier
+- Role-based access: `admin`, `sales`, `manager`, `cashier`
+- Dedicated single-module isolation for `sales` role
+- User ID sequence reset to start from `01` with 2-digit padded formatting (`01`, `02`, `03`...)
 - Invite-token registration for non-first users
 - Account lockout after failed login attempts
 - Session revocation and token version enforcement
@@ -191,17 +202,18 @@ To prevent session hijacking via Cross-Site Scripting (XSS) attacks, the authent
 
 ## Role Access Matrix
 
-| Area                          | Admin      | Manager | Cashier |
-| ----------------------------- | ---------- | ------- | ------- |
-| Dashboard                     | Yes        | Yes     | No      |
-| Billing                       | Yes        | Yes     | Yes     |
-| Products                      | Yes        | Yes     | No      |
-| Categories                    | Yes        | Yes     | No      |
-| Customers                     | Yes        | Yes     | Yes     |
-| Pricing                       | Yes        | Yes     | No      |
-| Notifications                 | Yes        | Yes     | No      |
-| ML Insights                   | Yes        | Yes     | No      |
-| Users / Audit / User Activity | Admin only | No      | No      |
+| Area                          | Admin      | Sales      | Manager | Cashier |
+| ----------------------------- | ---------- | ---------- | ------- | ------- |
+| Dashboard                     | Yes        | No         | Yes     | No      |
+| Sales Pipeline                | Yes        | Yes        | No      | No      |
+| Billing                       | Yes        | No         | Yes     | Yes     |
+| Products                      | Yes        | No         | Yes     | No      |
+| Categories                    | Yes        | No         | Yes     | No      |
+| Customers                     | Yes        | No         | Yes     | Yes     |
+| Pricing                       | Yes        | No         | Yes     | No      |
+| Notifications                 | Yes        | No         | Yes     | No      |
+| ML Insights                   | Yes        | No         | Yes     | No      |
+| Users / Audit / User Activity | Admin only | No         | No      | No      |
 
 ## Local Setup
 
@@ -228,6 +240,8 @@ DATABASE_URL=postgresql+psycopg2://postgres:<password>@localhost:5432/smart_pos_
 
 JWT_SECRET_KEY=<generate-a-strong-secret>
 JWT_REFRESH_SECRET_KEY=<generate-a-strong-secret>
+LEADS_EXTERNAL_API_KEY=smartpos_leads_live_sec_key_2026
+
 ACCESS_TOKEN_EXPIRE_MINUTES=20
 REFRESH_TOKEN_EXPIRE_DAYS=7
 MAX_FAILED_LOGIN_ATTEMPTS=5
@@ -295,7 +309,16 @@ venv\Scripts\python.exe scripts/seed_full_demo.py
 > [!NOTE]
 > The database seeding script runs over the schema created automatically by the backend. Ensure you run the backend service at least once first (so the database tables are created) before running the seeding script.
 
-This seeds all business entities (12 categories, 50 products, 35 customers, 400+ invoices with line items, price history, notification campaigns, audit logs, and inventory shortages) while preserving registered users. Payment methods include cash, UPI, card, and credit.
+This seeds all business entities (12 categories, 50 products, 35 customers, 440+ invoices with line items, price history, notification campaigns, audit logs, inventory shortages, 10 companies, 10 contacts, and 13 leads assigned via Round-Robin) while configuring staff accounts starting from User ID `01`. Payment methods include cash, UPI, card, and credit.
+
+## Seeded Staff Credentials
+
+- **Admin Account**: `rahulsharma@acpce.ac.in` | Password: `Sungjinwoo@8904`
+- **Sales Rep 1**: `vikas.sharma.sales@smartpos.demo` | Password: `Sales@123`
+- **Sales Rep 2**: `anita.roy.sales@smartpos.demo` | Password: `Sales@123`
+- **Sales Rep 3**: `kabir.das.sales@smartpos.demo` | Password: `Sales@123`
+- **Manager Account**: `arjun.mehta.manager@smartpos.demo` | Password: `Manager@123`
+- **Cashier Account**: `rohit.patel.cashier@smartpos.demo` | Password: `Cashier@123`
 
 ## Build and Validation
 
@@ -306,25 +329,10 @@ cd frontend
 npm run build
 ```
 
-## Render Environment Variables
-
-Backend service:
-
-- `DATABASE_URL`
-- `JWT_SECRET_KEY`
-- `JWT_REFRESH_SECRET_KEY`
-- `FRONTEND_URL`
-- `ALLOWED_ORIGINS`
-
-Frontend static site:
-
-- `VITE_API_URL`
-
-If you later add a real map/tracker component, prefer a free OpenStreetMap-based tile layer so you do not need a map API key.
-
 ## API Route Groups (High Level)
 
 - `/auth` authentication and session flows
+- `/sales` B2B sales pipeline, companies, contacts, leads, external API key ingestion
 - `/products` product operations
 - `/categories` category operations
 - `/billing` invoice creation and retrieval
@@ -335,10 +343,6 @@ If you later add a real map/tracker component, prefer a free OpenStreetMap-based
 - `/analytics` dashboard metrics
 - `/ml` segmentation/churn/ltv/recommendations/forecast/anomalies
 - `/users`, `/audit-logs`, `/user-activity` admin modules
-
-## Trial Account 
-Email Address : arjun.mehta.manager@smartpos.demo
-Password : Manager123
 
 ## License
 

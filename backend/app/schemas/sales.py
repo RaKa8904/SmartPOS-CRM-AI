@@ -103,3 +103,17 @@ class LeadOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ── External Lead Ingestion ─────────────────────────────────
+
+class ExternalLeadCreate(BaseModel):
+    title: str
+    company_name: str
+    contact_first_name: str
+    contact_last_name: str
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    designation: Optional[str] = None
+    estimated_value: Optional[float] = 0.0
+    notes: Optional[str] = None

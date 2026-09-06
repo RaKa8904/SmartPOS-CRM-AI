@@ -15,7 +15,8 @@ export default function RoleRoute({ children, allowedRoles }: Props) {
   }
 
   if (!role || !allowedRoles.includes(role)) {
-    return <Navigate to="/billing" replace />;
+    const fallback = role === "sales" ? "/sales" : "/billing";
+    return <Navigate to={fallback} replace />;
   }
 
   return children;

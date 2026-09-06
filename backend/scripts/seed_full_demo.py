@@ -29,13 +29,18 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+from sqlalchemy import text
 from app.core.security import hash_password
 from app.db.database import SessionLocal
 from app.models.audit_log import AuditLog
+from app.models.auth_security import PasswordResetToken, UserInvite
 from app.models.category import Category
+from app.models.company import Company
+from app.models.contact import Contact
 from app.models.customer import Customer
 from app.models.invoice import Invoice
 from app.models.invoice_item import InvoiceItem
+from app.models.lead import Lead
 from app.models.notification import Notification, NotificationCampaign, NotificationTemplate
 from app.models.price_history import ProductPriceHistory, ScheduledPriceChange
 from app.models.product import Product
@@ -48,6 +53,10 @@ SEED_TAG = "full_demo_seed_v2"
 # Staff accounts
 # ──────────────────────────────────────────────────────────────
 STAFF_USERS = [
+    {"email": "rahulsharma@acpce.ac.in",            "username": "Rahul Sharma", "role": "admin",    "password": "Sungjinwoo@8904"},
+    {"email": "vikas.sharma.sales@smartpos.demo", "username": "Vikas Sharma", "role": "sales",    "password": "Sales@123"},
+    {"email": "anita.roy.sales@smartpos.demo",    "username": "Anita Roy",    "role": "sales",    "password": "Sales@123"},
+    {"email": "kabir.das.sales@smartpos.demo",    "username": "Kabir Das",    "role": "sales",    "password": "Sales@123"},
     {"email": "arjun.mehta.manager@smartpos.demo",  "username": "Arjun Mehta",  "role": "manager",  "password": "Manager@123"},
     {"email": "neha.verma.manager@smartpos.demo",   "username": "Neha Verma",   "role": "manager",  "password": "Manager@123"},
     {"email": "rohit.patel.cashier@smartpos.demo",  "username": "Rohit Patel",  "role": "cashier",  "password": "Cashier@123"},
@@ -216,7 +225,13 @@ def _pick_actor() -> str:
 #  1.  WIPE OLD DATA (preserves users table)
 # ══════════════════════════════════════════════════════════════
 def nuke_business_data(db) -> None:
-    """Delete ALL business data so we seed from scratch. Users preserved."""
+    """Delete ALL business data so we seed from scratch."""
+    print("  Clearing leads …")
+    db.query(Lead).delete(synchronize_session=False)
+    print("  Clearing contacts …")
+    db.query(Contact).delete(synchronize_session=False)
+    print("  Clearing companies …")
+    db.query(Company).delete(synchronize_session=False)
     print("  Clearing invoice items …")
     db.query(InvoiceItem).delete(synchronize_session=False)
     print("  Clearing notifications …")
@@ -244,9 +259,21 @@ def nuke_business_data(db) -> None:
 
 
 # ══════════════════════════════════════════════════════════════
-#  2.  ENSURE STAFF USERS
+#  2.  ENSURE STAFF USERS & RESET SEQUENCE
 # ══════════════════════════════════════════════════════════════
 def ensure_staff_users(db) -> Dict[str, User]:
+    try:
+        db.query(Lead).delete(synchronize_session=False)
+        db.query(PasswordResetToken).delete(synchronize_session=False)
+        db.query(UserInvite).delete(synchronize_session=False)
+        db.query(AuditLog).delete(synchronize_session=False)
+        db.query(User).delete(synchronize_session=False)
+        db.commit()
+        db.execute(text("ALTER SEQUENCE users_id_seq RESTART WITH 1;"))
+        db.commit()
+    except Exception:
+        db.rollback()
+
     for entry in STAFF_USERS:
         existing = db.query(User).filter(User.email == entry["email"]).first()
         if existing:
@@ -725,6 +752,83 @@ def seed_notifications(db, product_map: Dict[str, Product], customer_map: Dict[s
 # ══════════════════════════════════════════════════════════════
 #  9.  CREATE INTENTIONAL INVENTORY SHORTAGES
 # ══════════════════════════════════════════════════════════════
+def seed_sales_pipeline(db) -> None:
+    companies_data = [
+        ("Apex Industrial Automation", "Manufacturing", "https://apexautomation.in", "Pune, Maharashtra"),
+        ("Precision Tech India", "Aerospace & Defense", "https://precisiontech.in", "Bengaluru, Karnataka"),
+        ("Nova Robotics", "Automation", "https://novarobotics.io", "Hyderabad, Telangana"),
+        ("Bharat Forge Tech", "Heavy Engineering", "https://bharatforge.demo", "Mumbai, Maharashtra"),
+        ("Titan Machinery Systems", "Industrial Goods", "https://titanmachinery.demo", "Chennai, Tamil Nadu"),
+        ("Spectra Laser Corp", "Optoelectronics", "https://spectralaser.com", "Noida, Uttar Pradesh"),
+        ("Helios Energy Solutions", "Renewables", "https://heliosenergy.in", "Ahmedabad, Gujarat"),
+        ("Quantum Dynamics Tech", "Robotics", "https://quantumdynamics.demo", "Gurugram, Haryana"),
+        ("Vertex Auto Components", "Automotive", "https://vertexauto.in", "Coimbatore, Tamil Nadu"),
+        ("Starlight Pharma Equipment", "Healthcare", "https://starlightpharma.com", "Vadodara, Gujarat"),
+    ]
+
+    company_map = {}
+    for name, ind, web, addr in companies_data:
+        comp = Company(name=name, industry=ind, website=web, address=addr)
+        db.add(comp)
+        db.flush()
+        company_map[name] = comp
+
+    contacts_data = [
+        ("Apex Industrial Automation", "Rajesh", "Kumar", "rajesh.kumar@apexautomation.in", "+91 9823011223", "VP Procurement"),
+        ("Precision Tech India", "Sunil", "Deshmukh", "sunil.d@precisiontech.in", "+91 9845022334", "Director Engineering"),
+        ("Nova Robotics", "Meenakshi", "Sundaram", "meenakshi@novarobotics.io", "+91 9711033445", "Head of Operations"),
+        ("Bharat Forge Tech", "Vikram", "Chawla", "vikram.chawla@bharatforge.demo", "+91 9892044556", "General Manager"),
+        ("Titan Machinery Systems", "Kavita", "Subramanian", "kavita.s@titanmachinery.demo", "+91 9444055667", "Plant Head"),
+        ("Spectra Laser Corp", "Amitabh", "Joshi", "ajoshi@spectralaser.com", "+91 9810066778", "Chief Technologist"),
+        ("Helios Energy Solutions", "Pooja", "Patel", "pooja@heliosenergy.in", "+91 9825077889", "Supply Chain Lead"),
+        ("Quantum Dynamics Tech", "Rohan", "Kapoor", "rohan.k@quantumdynamics.demo", "+91 9910088990", "CTO"),
+        ("Vertex Auto Components", "Suresh", "Raman", "sraman@vertexauto.in", "+91 9443099001", "Operations Director"),
+        ("Starlight Pharma Equipment", "Dr. Shalini", "Gupta", "shalini@starlightpharma.com", "+91 9871011223", "R&D Head"),
+    ]
+
+    contact_map = {}
+    for comp_name, fname, lname, email, phone, desig in contacts_data:
+        comp = company_map[comp_name]
+        cnt = Contact(company_id=comp.id, first_name=fname, last_name=lname, email=email, phone=phone, designation=desig)
+        db.add(cnt)
+        db.flush()
+        contact_map[comp_name] = cnt
+
+    sales_users = db.query(User).filter(User.role == "sales", User.is_active == True).order_by(User.id).all()
+    sales_user_ids = [u.id for u in sales_users]
+
+    leads_data = [
+        ("Fiber Laser Cutter 6kW - Apex Plant 2", "Apex Industrial Automation", "New", 8500000.0, "Customer requested catalog and site survey for sheet metal shop."),
+        ("Multi-Axis Laser Welding System", "Precision Tech India", "Contacted", 14500000.0, "Initial phone call completed; technical evaluation team reviewing specs."),
+        ("Robotics Laser Marking Station", "Nova Robotics", "Demo Scheduled", 3800000.0, "Live product demonstration scheduled for next Tuesday."),
+        ("Heavy Duty Laser Cladding Rig", "Bharat Forge Tech", "Negotiating", 22000000.0, "Commercial proposal submitted. Discount terms being finalized."),
+        ("Precision Tube Laser Cutter", "Titan Machinery Systems", "Won", 12500000.0, "PO issued! Contract signed and advance payment received."),
+        ("High-Power Laser Engraving Line", "Spectra Laser Corp", "Won", 6200000.0, "Deal closed. Installation and calibration phase initiated."),
+        ("Solar Panel Laser Scribing System", "Helios Energy Solutions", "Demo Scheduled", 17500000.0, "Sample wafers sent to lab for laser edge isolation test."),
+        ("Automated Laser Cleaning Cell", "Quantum Dynamics Tech", "Contacted", 4900000.0, "Requested ROI calculator and rust removal throughput benchmark."),
+        ("Automotive Chassis Laser Scanner", "Vertex Auto Components", "Negotiating", 9800000.0, "Final review with Managing Director; SLA terms under discussion."),
+        ("Pharma Ampoule Laser Coder", "Starlight Pharma Equipment", "Lost", 2900000.0, "Lost to competitor due to legacy offline software requirement."),
+        ("Portable Laser Rust Remover 2kW", "Apex Industrial Automation", "New", 1500000.0, "Inquiry received via webform; requested fast delivery timeline."),
+        ("Aerospace Titanium Laser Welder", "Precision Tech India", "Negotiating", 31000000.0, "Custom tooling specifications submitted to engineering team."),
+        ("Dual-Head Fiber Laser Cutter", "Nova Robotics", "Won", 18900000.0, "Repeat order confirmed for Expansion Facility B."),
+    ]
+
+    for idx, (title, comp_name, status, val, notes) in enumerate(leads_data):
+        cnt = contact_map[comp_name]
+        assigned_id = sales_user_ids[idx % len(sales_user_ids)] if sales_user_ids else None
+        db.add(Lead(
+            title=title,
+            contact_id=cnt.id,
+            assigned_user_id=assigned_id,
+            status=status,
+            estimated_value=val,
+            notes=notes,
+        ))
+
+    db.flush()
+    print(f"  [SUCCESS] {len(companies_data)} companies, {len(contacts_data)} contacts, {len(leads_data)} leads seeded with Round-Robin assignment.")
+
+
 def create_inventory_shortages(db, product_map: Dict[str, Product]) -> None:
     """Artificially set some products to out-of-stock or low-stock for dashboard risk widget."""
     shortage_map = {
@@ -758,28 +862,31 @@ def main():
         print("  SmartPOS CRM AI – Full 30-Day Demo Seeder")
         print("=" * 60)
 
-        print("\n[1/8] Ensuring staff users...")
+        print("\n[1/9] Ensuring staff users...")
         users_by_email = ensure_staff_users(db)
 
-        print("[2/8] Clearing old business data...")
+        print("[2/9] Clearing old business data...")
         nuke_business_data(db)
 
-        print("[3/8] Seeding categories & products...")
+        print("[3/9] Seeding categories & products...")
         category_map, product_map = seed_categories_and_products(db)
 
-        print("[4/8] Seeding customers...")
+        print("[4/9] Seeding customers...")
         customer_map = seed_customers(db, now_utc)
 
-        print("[5/8] Seeding price history...")
+        print("[5/9] Seeding price history...")
         seed_price_history(db, product_map, now_utc)
 
-        print("[6/8] Seeding invoices & line items (30 days)...")
+        print("[6/9] Seeding invoices & line items (30 days)...")
         total_inv = seed_invoices(db, product_map, customer_map, now_utc)
 
-        print("[7/8] Seeding user activity & audit logs...")
+        print("[7/9] Seeding user activity & audit logs...")
         seed_user_activity(db, users_by_email, now_utc)
 
-        print("[8/8] Seeding notifications & creating inventory shortages...")
+        print("[8/9] Seeding sales pipeline (companies, contacts, leads with Round-Robin)...")
+        seed_sales_pipeline(db)
+
+        print("[9/9] Seeding notifications & creating inventory shortages...")
         seed_notifications(db, product_map, customer_map, now_utc)
         create_inventory_shortages(db, product_map)
 

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+import os
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -11,8 +12,9 @@ from app.schemas.sales import (
     CompanyCreate, CompanyUpdate, CompanyOut,
     ContactCreate, ContactUpdate, ContactOut,
     LeadCreate, LeadUpdate, LeadOut,
+    ExternalLeadCreate,
 )
-from app.core.dependencies import require_role, get_current_user
+from app.core.dependencies import require_role
 from app.core.audit import write_audit_log
 
 router = APIRouter(prefix="/sales", tags=["Sales"])
@@ -29,6 +31,36 @@ def _clean_optional_text(value: str | None) -> str | None:
     return cleaned or None
 
 
+def get_next_round_robin_sales_user(db: Session) -> Optional[int]:
+    """Find active sales users and return the one due for the next lead in Round-Robin order."""
+    sales_users = (
+        db.query(User)
+        .filter(User.role == "sales", User.is_active == True)
+        .order_by(User.id)
+        .all()
+    )
+    if not sales_users:
+        # Fallback to active admin users if no sales reps exist
+        sales_users = (
+            db.query(User)
+            .filter(User.role == "admin", User.is_active == True)
+            .order_by(User.id)
+            .all()
+        )
+    if not sales_users:
+        return None
+
+    # Count existing leads assigned to each candidate user
+    user_lead_counts = []
+    for user in sales_users:
+        count = db.query(Lead).filter(Lead.assigned_user_id == user.id).count()
+        user_lead_counts.append((count, user.id))
+
+    # Pick user with minimum lead count (ties broken by lower user.id)
+    user_lead_counts.sort(key=lambda x: (x[0], x[1]))
+    return user_lead_counts[0][1]
+
+
 # ═══════════════════════════════════════════════════════════
 #  COMPANIES
 # ═══════════════════════════════════════════════════════════
@@ -37,7 +69,7 @@ def _clean_optional_text(value: str | None) -> str | None:
 def create_company(
     payload: CompanyCreate,
     db: Session = Depends(get_db),
-    current=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "sales")),
 ):
     name = _clean_text(payload.name)
     if not name:
@@ -73,12 +105,19 @@ def create_company(
 
 
 @router.get("/companies", response_model=list[CompanyOut])
-def list_companies(db: Session = Depends(get_db), _=Depends(get_current_user)):
+def list_companies(
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "sales")),
+):
     return db.query(Company).order_by(Company.name).all()
 
 
 @router.get("/companies/{company_id}", response_model=CompanyOut)
-def get_company(company_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def get_company(
+    company_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "sales")),
+):
     company = db.query(Company).filter(Company.id == company_id).first()
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
@@ -90,7 +129,7 @@ def update_company(
     company_id: int,
     payload: CompanyUpdate,
     db: Session = Depends(get_db),
-    _=Depends(require_role("admin", "manager")),
+    _=Depends(require_role("admin", "sales")),
 ):
     company = db.query(Company).filter(Company.id == company_id).first()
     if not company:
@@ -120,13 +159,12 @@ def update_company(
 def delete_company(
     company_id: int,
     db: Session = Depends(get_db),
-    current=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "sales")),
 ):
     company = db.query(Company).filter(Company.id == company_id).first()
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
 
-    # Block if contacts exist under this company
     has_contacts = db.query(Contact).filter(Contact.company_id == company_id).first()
     if has_contacts:
         raise HTTPException(
@@ -155,9 +193,8 @@ def delete_company(
 def create_contact(
     payload: ContactCreate,
     db: Session = Depends(get_db),
-    current=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "sales")),
 ):
-    # Validate company exists
     company = db.query(Company).filter(Company.id == payload.company_id).first()
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
@@ -200,7 +237,7 @@ def create_contact(
 def list_contacts(
     company_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_role("admin", "sales")),
 ):
     q = db.query(Contact)
     if company_id is not None:
@@ -213,7 +250,7 @@ def update_contact(
     contact_id: int,
     payload: ContactUpdate,
     db: Session = Depends(get_db),
-    _=Depends(require_role("admin", "manager")),
+    _=Depends(require_role("admin", "sales")),
 ):
     contact = db.query(Contact).filter(Contact.id == contact_id).first()
     if not contact:
@@ -255,13 +292,12 @@ def update_contact(
 def delete_contact(
     contact_id: int,
     db: Session = Depends(get_db),
-    current=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "sales")),
 ):
     contact = db.query(Contact).filter(Contact.id == contact_id).first()
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
 
-    # Block if leads reference this contact
     has_leads = db.query(Lead).filter(Lead.contact_id == contact_id).first()
     if has_leads:
         raise HTTPException(
@@ -287,7 +323,6 @@ def delete_contact(
 # ═══════════════════════════════════════════════════════════
 
 def _enrich_lead(lead: Lead, db: Session) -> dict:
-    """Build a LeadOut-compatible dict with joined names."""
     contact = db.query(Contact).filter(Contact.id == lead.contact_id).first()
     company_name = None
     contact_name = None
@@ -321,31 +356,32 @@ def _enrich_lead(lead: Lead, db: Session) -> dict:
 def create_lead(
     payload: LeadCreate,
     db: Session = Depends(get_db),
-    current=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "sales")),
 ):
     title = _clean_text(payload.title)
     if not title:
         raise HTTPException(status_code=400, detail="Lead title is required")
 
-    # Validate contact
     contact = db.query(Contact).filter(Contact.id == payload.contact_id).first()
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
 
-    # Validate status
     if payload.status not in VALID_LEAD_STATUSES:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {', '.join(VALID_LEAD_STATUSES)}")
 
-    # Validate assigned user if provided
-    if payload.assigned_user_id is not None:
-        user = db.query(User).filter(User.id == payload.assigned_user_id).first()
+    assigned_user_id = payload.assigned_user_id
+    if assigned_user_id is not None:
+        user = db.query(User).filter(User.id == assigned_user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="Assigned user not found")
+    else:
+        # Automatic Round-Robin distribution if unassigned
+        assigned_user_id = get_next_round_robin_sales_user(db)
 
     lead = Lead(
         title=title,
         contact_id=payload.contact_id,
-        assigned_user_id=payload.assigned_user_id,
+        assigned_user_id=assigned_user_id,
         status=payload.status,
         estimated_value=payload.estimated_value or 0.0,
         notes=_clean_optional_text(payload.notes),
@@ -360,8 +396,75 @@ def create_lead(
         action="lead_created",
         entity_type="lead",
         entity_id=str(lead.id),
-        details={"title": lead.title, "status": lead.status},
+        details={"title": lead.title, "status": lead.status, "assigned_user_id": assigned_user_id},
     )
+    return _enrich_lead(lead, db)
+
+
+@router.post("/leads/external", response_model=LeadOut)
+def create_external_lead(
+    payload: ExternalLeadCreate,
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+    db: Session = Depends(get_db),
+):
+    """External API endpoint for automated lead ingestion (Webforms, Zapier, Ads) with Round-Robin assignment."""
+    expected_key = os.getenv("LEADS_EXTERNAL_API_KEY", "smartpos_leads_live_sec_key_2026")
+    if not x_api_key or x_api_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid or missing X-API-Key header")
+
+    c_name = _clean_text(payload.company_name)
+    if not c_name:
+        raise HTTPException(status_code=400, detail="Company name is required")
+    
+    company = db.query(Company).filter(Company.name.ilike(c_name)).first()
+    if not company:
+        company = Company(name=c_name)
+        db.add(company)
+        db.commit()
+        db.refresh(company)
+
+    first_name = _clean_text(payload.contact_first_name)
+    last_name = _clean_text(payload.contact_last_name)
+    email = _clean_optional_text(payload.contact_email)
+    contact = None
+    if email:
+        contact = db.query(Contact).filter(Contact.email.ilike(email)).first()
+    if not contact:
+        contact = Contact(
+            company_id=company.id,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=_clean_optional_text(payload.contact_phone),
+            designation=_clean_optional_text(payload.designation),
+        )
+        db.add(contact)
+        db.commit()
+        db.refresh(contact)
+
+    assigned_user_id = get_next_round_robin_sales_user(db)
+
+    lead = Lead(
+        title=_clean_text(payload.title),
+        contact_id=contact.id,
+        assigned_user_id=assigned_user_id,
+        status=LeadStatus.NEW.value,
+        estimated_value=payload.estimated_value or 0.0,
+        notes=_clean_optional_text(payload.notes),
+    )
+    db.add(lead)
+    db.commit()
+    db.refresh(lead)
+
+    write_audit_log(
+        db,
+        actor_email="system_api@external.leads",
+        action="external_lead_ingested",
+        entity_type="lead",
+        entity_id=str(lead.id),
+        details={"title": lead.title, "assigned_user_id": assigned_user_id},
+    )
+
     return _enrich_lead(lead, db)
 
 
@@ -369,7 +472,7 @@ def create_lead(
 def list_leads(
     status: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_role("admin", "sales")),
 ):
     q = db.query(Lead)
     if status is not None:
@@ -382,7 +485,11 @@ def list_leads(
 
 
 @router.get("/leads/{lead_id}", response_model=LeadOut)
-def get_lead(lead_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def get_lead(
+    lead_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin", "sales")),
+):
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -394,7 +501,7 @@ def update_lead(
     lead_id: int,
     payload: LeadUpdate,
     db: Session = Depends(get_db),
-    current=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "sales")),
 ):
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
@@ -442,7 +549,7 @@ def update_lead(
 def delete_lead(
     lead_id: int,
     db: Session = Depends(get_db),
-    current=Depends(require_role("admin", "manager")),
+    current=Depends(require_role("admin", "sales")),
 ):
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
