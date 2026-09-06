@@ -13,6 +13,7 @@ import MLInsights from "./pages/MLInsights";
 import Users from "./pages/Users";
 import AuditLogs from "./pages/AuditLogs";
 import UserActivity from "./pages/UserActivity";
+import SalesPipeline from "./pages/SalesPipeline";
 
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -58,6 +59,14 @@ export default function App() {
           }
         />
         <Route path="/billing" element={<Billing />} />
+        <Route
+          path="/sales"
+          element={
+            <RoleRoute allowedRoles={["admin", "manager"]}>
+              <SalesPipeline />
+            </RoleRoute>
+          }
+        />
         <Route
           path="/products"
           element={

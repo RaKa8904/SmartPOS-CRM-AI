@@ -15,6 +15,11 @@ services:
         generateValue: true
       - key: JWT_REFRESH_SECRET_KEY
         generateValue: true
+      - key: FRONTEND_URL
+        fromService:
+          name: smartpos-frontend
+          type: web
+          property: host
       - key: ALLOWED_ORIGINS
         fromService:
           name: smartpos-frontend

@@ -54,6 +54,11 @@ const GROUP_ICONS: Record<string, React.ReactNode> = {
       <line x1="6" y1="20" x2="6" y2="14"/>
     </svg>
   ),
+  Sales: (
+    <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0 opacity-60 mr-1" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+    </svg>
+  ),
 };
 
 const allGroups: NavGroup[] = [
@@ -61,6 +66,12 @@ const allGroups: NavGroup[] = [
     label: "Overview",
     items: [
       { name: "Dashboard",  path: "/",    roles: ["admin", "manager"], icon: Icons.Dashboard },
+    ],
+  },
+  {
+    label: "Sales",
+    items: [
+      { name: "Sales Pipeline", path: "/sales", roles: ["admin", "manager"], icon: <SvgIcon><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></SvgIcon> },
     ],
   },
   {

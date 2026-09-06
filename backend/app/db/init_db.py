@@ -9,6 +9,9 @@ from app.models.notification import Notification, NotificationTemplate, Notifica
 from app.models.user import User
 from app.models.auth_security import UserInvite, PasswordResetToken
 from app.models.audit_log import AuditLog
+from app.models.company import Company  # noqa: F401 - registers table
+from app.models.contact import Contact  # noqa: F401 - registers table
+from app.models.lead import Lead  # noqa: F401 - registers table
 from sqlalchemy import text
 
 

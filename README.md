@@ -306,6 +306,22 @@ cd frontend
 npm run build
 ```
 
+## Render Environment Variables
+
+Backend service:
+
+- `DATABASE_URL`
+- `JWT_SECRET_KEY`
+- `JWT_REFRESH_SECRET_KEY`
+- `FRONTEND_URL`
+- `ALLOWED_ORIGINS`
+
+Frontend static site:
+
+- `VITE_API_URL`
+
+If you later add a real map/tracker component, prefer a free OpenStreetMap-based tile layer so you do not need a map API key.
+
 ## API Route Groups (High Level)
 
 - `/auth` authentication and session flows
